@@ -13,6 +13,7 @@ env.bak/
 venv.bak/
 
 # Manuscripts & LaTeX build files (Excluded as requested)
+manuscripts_archive/
 *.aux
 *.log
 *.out
