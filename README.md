@@ -95,8 +95,8 @@ Double-click `start_courseai.bat`. It will automatically verify Python, install 
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/Course-Recommendation-System.git
-   cd Course-Recommendation-System
+   git clone https://github.com/kiranbandi784264-cpu/CourseAI_recommendation_System.git
+   cd CourseAI_recommendation_System
    ```
 
 2. **Create and activate a virtual environment (optional but recommended):**
