@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CourseAI — Interactive Presentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#060d1f;--card:#0d1b3a;--card2:#111e3f;--blue:#38bdf8;--indigo:#818cf8;--emerald:#34d399;--violet:#a78bfa;--rose:#fb7185;--amber:#fbbf24;--muted:#94a3b8;--light:#e2eeff;--white:#fff;--border:rgba(56,189,248,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--light);height:100vh;overflow:hidden;display:flex;flex-direction:column;user-select:none;}
+
+/* ── CANVAS BG ── */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* ── TOP BAR ── */
+#topbar{position:relative;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:8px 24px;background:rgba(6,13,31,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo{font-weight:900;font-size:22px;letter-spacing:-0.5px;}
+.logo em{color:var(--blue);font-style:normal;}
+.logo span{color:var(--white);}
+#slide-counter{font-size:15px;color:var(--muted);font-weight:600;background:rgba(56,189,248,0.08);padding:4px 14px;border-radius:20px;border:1px solid var(--border);}
+.nav-row{display:flex;gap:8px;align-items:center;}
+.nav-btn{background:rgba(13,27,58,0.9);border:1px solid var(--border);color:var(--blue);padding:7px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;}
+.nav-btn:hover{background:var(--blue);color:var(--bg);}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed;}
+#fs-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;transition:all .2s;}
+#fs-btn:hover{color:var(--white);border-color:rgba(255,255,255,.4);}
+
+/* ── SLIDE AREA ── */
+#slide-area{position:relative;flex:1;overflow:hidden;z-index:1;}
+.slide{position:absolute;inset:0;display:none;padding:22px 44px 16px;overflow:hidden;}
+.slide.active{display:flex;flex-direction:column;}
+
+/* ── ENTRANCE ANIMATIONS ── */
+.fade-up{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease;}
+.fade-left{opacity:0;transform:translateX(-20px);transition:opacity .5s ease,transform .5s ease;}
+.fade-right{opacity:0;transform:translateX(20px);transition:opacity .5s ease,transform .5s ease;}
+.fade-in{opacity:0;transition:opacity .5s ease;}
+.slide.active .fade-up,.slide.active .fade-left,.slide.active .fade-right,.slide.active .fade-in{opacity:1;transform:none;}
+.d1{transition-delay:.05s!important;}
+.d2{transition-delay:.15s!important;}
+.d3{transition-delay:.25s!important;}
+.d4{transition-delay:.35s!important;}
+.d5{transition-delay:.45s!important;}
+.d6{transition-delay:.55s!important;}
+.d7{transition-delay:.65s!important;}
+.d8{transition-delay:.75s!important;}
+
+/* ── HEADER ── */
+.slide-header{margin-bottom:14px;flex-shrink:0;}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:var(--blue);font-size:13px;font-weight:700;padding:5px 16px;border-radius:20px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;}
+.slide-title{font-size:38px;font-weight:900;color:var(--white);line-height:1.15;margin-bottom:5px;}
+.slide-title .hl{background:linear-gradient(90deg,var(--blue),var(--indigo));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.slide-sub{font-size:16px;color:var(--muted);}
+
+/* ── CARD ── */
+.card{background:linear-gradient(135deg,rgba(13,27,58,.95),rgba(17,30,63,.9));border:1px solid var(--border);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--indigo));opacity:.5;}
+.card.emerald::before{background:linear-gradient(90deg,var(--emerald),var(--blue));}
+.card.violet::before{background:linear-gradient(90deg,var(--violet),var(--rose));}
+.card.amber::before{background:linear-gradient(90deg,var(--amber),var(--rose));}
+.card-title{font-size:17px;font-weight:700;color:var(--blue);margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.card-title.em{color:var(--emerald);}
+.card-title.vl{color:var(--violet);}
+.card-title.am{color:var(--amber);}
+
+/* ── LAYOUTS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;min-height:0;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;flex:1;min-height:0;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;flex:1;min-height:0;}
+.g2x1{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;flex:1;min-height:0;}
+.g1x2{display:grid;grid-template-columns:1fr 1.6fr;gap:14px;flex:1;min-height:0;}
+.col{display:flex;flex-direction:column;gap:12px;min-height:0;}
+
+/* ── SCREENSHOT ── */
+.ss{width:100%;height:100%;object-fit:contain;border-radius:10px;border:1px solid var(--border);display:block;filter:brightness(.95);}
+.ss-cover{width:100%;height:100%;object-fit:cover;border-radius:10px;border:1px solid var(--border);}
+
+/* ── STAT BOX ── */
+.stat-box{text-align:center;padding:12px 8px;}
+.stat-val{font-size:40px;font-weight:900;background:linear-gradient(135deg,var(--blue),var(--indigo));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:4px;}
+.stat-label{font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.stat-sub{font-size:10.5px;color:var(--light);margin-top:2px;}
+
+/* ── PROGRESS BAR ── */
+.prog{margin-bottom:8px;}
+.prog-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.prog-label{font-size:14px;color:var(--light);font-weight:600;}
+.prog-val{font-size:14px;color:var(--blue);font-weight:700;font-family:'JetBrains Mono',monospace;}
+.prog-track{height:9px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:4px;width:0;transition:width 1s cubic-bezier(.4,0,.2,1);}
+.fill-blue{background:linear-gradient(90deg,var(--blue),var(--indigo));}
+.fill-em{background:linear-gradient(90deg,var(--emerald),var(--blue));}
+.fill-vl{background:linear-gradient(90deg,var(--violet),var(--indigo));}
+.fill-rose{background:linear-gradient(90deg,var(--rose),var(--amber));}
+
+/* ── STEP ── */
+.step{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);align-items:flex-start;}
+.step:last-child{border:none;}
+.step-num{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--bg);flex-shrink:0;}
+.step-num.em{background:linear-gradient(135deg,var(--emerald),var(--blue));}
+.step-num.vl{background:linear-gradient(135deg,var(--violet),var(--indigo));}
+.step-content strong{display:block;font-size:15px;color:var(--white);margin-bottom:2px;}
+.step-content span{font-size:13.5px;color:var(--muted);line-height:1.5;}
+
+/* ── BULLET ── */
+.bul{list-style:none;}
+.bul li{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:14.5px;line-height:1.55;}
+.bul li:last-child{border:none;}
+.bul li .ic{color:var(--emerald);font-size:16px;flex-shrink:0;margin-top:1px;}
+.bul li .ic.bl{color:var(--blue);}
+.bul li .ic.vl{color:var(--violet);}
+.bul li strong{color:var(--white);display:block;font-size:14px;margin-bottom:2px;}
+.bul li p{color:var(--muted);font-size:13px;margin:0;}
+
+/* ── TAG ── */
+.tag{display:inline-block;padding:4px 11px;border-radius:6px;font-size:12px;font-weight:700;margin:2px;letter-spacing:.3px;}
+.tag.bl{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);color:var(--blue);}
+.tag.em{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);color:var(--emerald);}
+.tag.vl{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);color:var(--violet);}
+.tag.am{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);color:var(--amber);}
+.tag.ro{background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.25);color:var(--rose);}
+
+/* ── TABLE ── */
+.mtable{width:100%;border-collapse:collapse;font-size:11.5px;}
+.mtable th{background:rgba(56,189,248,.1);color:var(--blue);font-weight:700;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);}
+.mtable td{padding:6px 10px;color:var(--light);border-bottom:1px solid rgba(255,255,255,.04);}
+.mtable tr:first-child td{color:var(--emerald);font-weight:700;}
+.mtable tr:hover td{background:rgba(56,189,248,.04);}
+.rank-1 td{color:var(--emerald)!important;font-weight:700!important;}
+
+/* ── SVG RADAR ── */
+.radar-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+#radarSvg{animation:spinIn .6s ease;}
+@keyframes spinIn{from{opacity:0;transform:scale(.7)rotate(-10deg);}to{opacity:1;transform:none;}}
+
+/* ── ARCH FLOW ── */
+.flow-node{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--blue);position:relative;}
+.flow-arrow{text-align:center;font-size:18px;color:var(--muted);line-height:1;margin:2px 0;}
+
+/* ── PULSE DOT ── */
+.pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--emerald);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.5);}50%{box-shadow:0 0 0 6px rgba(52,211,153,0);}}
+
+/* ── PROBLEM CARD ── */
+.prob-card{background:linear-gradient(135deg,rgba(13,27,58,.95),rgba(17,30,63,.9));border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:border-color .3s;}
+.prob-card:hover{border-color:var(--blue);}
+.prob-icon{font-size:28px;margin-bottom:4px;}
+.prob-title{font-size:14px;font-weight:800;color:var(--white);}
+.prob-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+.prob-impact{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.prob-impact-label{font-size:10px;font-weight:700;color:var(--rose);text-transform:uppercase;letter-spacing:.5px;}
+.prob-bar{flex:1;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+.prob-bar-fill{height:100%;border-radius:3px;animation:growBar 1.2s ease forwards;}
+@keyframes growBar{from{width:0}to{width:var(--w)}}
+.prob-solution{font-size:11px;color:var(--emerald);font-weight:600;display:flex;align-items:center;gap:5px;}
+
+/* ── MODEL CARD ── */
+.model-card{background:var(--card2);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;transition:all .2s;}
+.model-card:first-child{border-color:var(--emerald);background:rgba(52,211,153,.06);}
+.model-card:hover{border-color:var(--blue);transform:translateX(3px);}
+.model-rank{font-size:18px;font-weight:900;color:var(--blue);width:24px;flex-shrink:0;text-align:center;}
+.model-card:first-child .model-rank{color:var(--emerald);}
+.model-info{flex:1;min-width:0;}
+.model-name{font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.model-desc{font-size:10.5px;color:var(--muted);}
+.model-score{font-size:13px;font-weight:800;color:var(--blue);font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+.model-card:first-child .model-score{color:var(--emerald);}
+
+/* ── FEATURE HIGHLIGHT ── */
+.feat-item{display:flex;gap:10px;padding:8px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:all .2s;margin-bottom:6px;}
+.feat-item:hover{background:rgba(56,189,248,.06);border-color:rgba(56,189,248,.2);}
+.feat-icon{font-size:20px;flex-shrink:0;width:36px;height:36px;background:rgba(56,189,248,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.feat-body strong{display:block;font-size:12.5px;color:var(--white);margin-bottom:2px;}
+.feat-body p{font-size:11px;color:var(--muted);line-height:1.45;}
+
+/* ── BOTTOM BAR ── */
+#bottombar{position:relative;z-index:100;display:flex;justify-content:center;align-items:center;gap:10px;padding:8px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.05);background:rgba(6,13,31,.85);backdrop-filter:blur(8px);}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.15);border:none;cursor:pointer;transition:all .25s;padding:0;}
+.dot.active{background:var(--blue);transform:scale(1.4);box-shadow:0 0 8px var(--blue);}
+.dot-label{font-size:9px;color:var(--muted);font-weight:600;text-align:center;max-width:60px;line-height:1.2;}
+.dot-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+.dot-wrap:hover .dot{background:rgba(56,189,248,.5);}
+.key-hint{position:fixed;bottom:36px;right:16px;font-size:10px;color:rgba(148,163,184,.4);}
+
+/* ── GLOWING GRADIENT ORBS ── */
+.orb{position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;animation:floatOrb 8s ease-in-out infinite;}
+@keyframes floatOrb{0%,100%{transform:translateY(0);}50%{transform:translateY(-20px);}}
+
+/* ── NUMBER COUNTER ── */
+.count-num{font-variant-numeric:tabular-nums;}
+
+/* ── CHAT BUBBLE ── */
+.chat-bubble{padding:10px 14px;border-radius:12px;font-size:11.5px;line-height:1.5;max-width:85%;margin-bottom:8px;}
+.chat-user{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.2);color:var(--light);align-self:flex-end;border-bottom-right-radius:3px;}
+.chat-ai{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:var(--light);border-bottom-left-radius:3px;}
+.chat-name{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.chat-name.user{color:var(--blue);text-align:right;}
+.chat-name.ai{color:var(--emerald);}
+
+/* ── SLIDE 1 SPECIFIC ── */
+#s1{flex-direction:row!important;gap:0;align-items:stretch;}
+.s1-left{flex:0 0 52%;display:flex;flex-direction:column;justify-content:center;padding-right:30px;}
+.s1-right{flex:1;display:flex;flex-direction:column;gap:12px;}
+.s1-badge{display:inline-block;background:linear-gradient(90deg,rgba(14,116,144,.7),rgba(29,78,216,.7));border:1px solid rgba(56,189,248,.3);color:#e0f2fe;font-size:10px;font-weight:700;padding:5px 16px;border-radius:20px;margin-bottom:16px;letter-spacing:.8px;}
+.s1-title{font-size:54px;font-weight:900;color:var(--white);line-height:1.05;margin-bottom:8px;}
+.s1-title .ai{color:var(--blue);}
+.s1-tagline{font-size:17px;font-weight:700;color:var(--blue);margin-bottom:12px;line-height:1.35;}
+.s1-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px;}
+.kpi-row{display:flex;gap:10px;margin-bottom:20px;}
+.kpi{flex:1;background:rgba(13,27,58,.9);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;}
+.kpi-val{font-size:22px;font-weight:900;color:var(--blue);line-height:1;margin-bottom:2px;}
+.kpi-lbl{font-size:9.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.s1-footer{font-size:11px;color:var(--indigo);}
+
+/* ── SCREENSHOT CARD ── */
+.ss-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
+.ss-card-title{padding:8px 14px;font-size:11px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.ss-card-body{flex:1;min-height:0;overflow:hidden;}
+
+/* ── ARCHITECTURE ── */
+.arch-layer{display:flex;gap:8px;align-items:center;}
+.arch-node{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-align:center;font-size:11px;font-weight:700;color:var(--blue);transition:all .3s;}
+.arch-node:hover{border-color:var(--blue);transform:scale(1.03);}
+.arch-node .sub{font-size:9.5px;color:var(--muted);font-weight:400;margin-top:2px;}
+.arch-sep{color:var(--muted);font-size:14px;flex-shrink:0;}
+.layer-label{font-size:9.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;width:60px;flex-shrink:0;}
+
+/* ── DEPLOYMENT TERMINAL ── */
+.terminal{background:#020710;border:1px solid rgba(56,189,248,.2);border-radius:10px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.8;}
+.term-line{display:flex;gap:8px;}
+.term-prompt{color:var(--emerald);}
+.term-cmd{color:var(--white);}
+.term-out{color:var(--muted);}
+.term-url{color:var(--blue);}
+
+/* Scrollbar hide */
+::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<div id="topbar">
+  <div class="logo">Course<em>AI</em> <span style="font-weight:300;color:var(--muted);font-size:13px;margin-left:6px;">Presentation</span></div>
+  <span id="slide-counter">Slide 1 of 10</span>
+  <div class="nav-row">
+    <button id="fs-btn" onclick="toggleFS()">&#x26F6; Fullscreen</button>
+    <button class="nav-btn" id="prev-btn" onclick="changeSlide(-1)" disabled>&larr; Prev</button>
+    <button class="nav-btn" id="next-btn" onclick="changeSlide(1)">Next &rarr;</button>
+  </div>
+</div>
+
+<div id="slide-area">
+
+<!-- ═══════ S1: TITLE ═══════ -->
+<div class="slide" id="s1">
+  <div style="position:absolute;top:-60px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(56,189,248,.08),transparent 70%);pointer-events:none;border-radius:50%;animation:floatOrb 7s ease-in-out infinite;"></div>
+  <div style="position:absolute;bottom:-80px;left:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(129,140,248,.07),transparent 70%);pointer-events:none;border-radius:50%;animation:floatOrb 9s ease-in-out infinite reverse;"></div>
+  
+  <div class="s1-left">
+    <div class="s1-badge fade-up d1">&#9889; NEXT-GEN E-LEARNING AI PLATFORM</div>
+    <div class="s1-title fade-up d2">Course<span class="ai">AI</span></div>
+    <div class="s1-tagline fade-up d3">Intelligent Course Recommendation &amp;<br/>Job Skill Gap Engine</div>
+    <div class="s1-desc fade-up d4">A full-stack AI platform connecting learners with personalized online courses, detailed syllabi, companion literature, and real-world career skill requirements — all in one glassmorphic dashboard.</div>
+    
+    <div class="kpi-row fade-up d5">
+      <div class="kpi"><div class="kpi-val count-num" data-target="85">0</div><div class="kpi-lbl">% Precision@10</div></div>
+      <div class="kpi"><div class="kpi-val count-num" data-target="8">0</div><div class="kpi-lbl">AI Models</div></div>
+      <div class="kpi"><div class="kpi-val count-num" data-target="250">0</div><div class="kpi-lbl">Courses</div></div>
+      <div class="kpi"><div class="kpi-val count-num" data-target="25">0</div><div class="kpi-lbl">Job Roles</div></div>
+      <div class="kpi"><div class="kpi-val count-num" data-target="50">0</div><div class="kpi-lbl">User Profiles</div></div>
+    </div>
+    
+    <div class="s1-footer fade-up d6">
+      <span class="tag bl">PyTorch</span>
+      <span class="tag em">Flask REST API</span>
+      <span class="tag vl">LightGCN</span>
+      <span class="tag am">Chart.js</span>
+      <span class="tag ro">Glassmorphic UI</span>
+      <div style="margin-top:8px;">Engineering &amp; AI Product Presentation &bull; Academic Year 2026</div>
+    </div>
+  </div>
+  
+  <div class="s1-right fade-right d3">
+    <div class="ss-card" style="flex:2;min-height:0;">
+      <div class="ss-card-title">&#127968; Live Application Dashboard &nbsp;<span class="pulse"></span></div>
+      <div class="ss-card-body">
+        <img src="http://127.0.0.1:5000/static/thumbnail.png" class="ss-cover" alt="CourseAI Dashboard" style="height:100%;"/>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;flex-shrink:0;">
+      <div class="card" style="padding:12px;">
+        <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Hit Rate</div>
+        <div style="font-size:26px;font-weight:900;color:var(--emerald);">92.4%</div>
+        <div style="font-size:10.5px;color:var(--muted);">Top-10 recommendations</div>
+      </div>
+      <div class="card" style="padding:12px;">
+        <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">NDCG@10</div>
+        <div style="font-size:26px;font-weight:900;color:var(--blue);">0.892</div>
+        <div style="font-size:10.5px;color:var(--muted);">Ranking quality score</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ S2: PROBLEM ═══════ -->
+<div class="slide" id="s2">
+  <div class="slide-header fade-up d1">
+    <div class="badge">&#128161; Motivation</div>
+    <div class="slide-title">Why <span class="hl">CourseAI</span> Was Built</div>
+    <div class="slide-sub">Four critical gaps in today's digital education &amp; course discovery experience</div>
+  </div>
+  <div class="g2">
+    <div class="prob-card fade-up d2">
+      <div class="prob-icon">&#128565;</div>
+      <div class="prob-title">Choice Overload &amp; Decision Fatigue</div>
+      <div class="prob-desc">Over <strong style="color:var(--blue);">10,000+ courses</strong> exist across Coursera, Udemy, and edX alone. Without structured, personalized guidance, students spend hours browsing and still end up enrolling in the wrong course for their career goals.</div>
+      <div class="prob-impact">
+        <div class="prob-impact-label">Impact</div>
+        <div class="prob-bar"><div class="prob-bar-fill" style="--w:88%;background:linear-gradient(90deg,var(--rose),var(--amber));"></div></div>
+        <span style="font-size:11px;color:var(--rose);font-weight:700;">88%</span>
+      </div>
+      <div class="prob-solution">&#10003; CourseAI narrows 10K+ choices to your top 10 personalized picks</div>
+    </div>
+    <div class="prob-card fade-up d3">
+      <div class="prob-icon">&#128376;</div>
+      <div class="prob-title">Shallow Interaction Modeling</div>
+      <div class="prob-desc">Standard collaborative filters use only <strong style="color:var(--blue);">surface star ratings</strong>, completely ignoring rich multi-hop graph patterns, implicit view-time signals, and the semantic relationship between user interests and course content.</div>
+      <div class="prob-impact">
+        <div class="prob-impact-label">Impact</div>
+        <div class="prob-bar"><div class="prob-bar-fill" style="--w:74%;background:linear-gradient(90deg,var(--rose),var(--amber));"></div></div>
+        <span style="font-size:11px;color:var(--rose);font-weight:700;">74%</span>
+      </div>
+      <div class="prob-solution">&#10003; CourseAI's LightGCN models deep graph propagation across the platform</div>
+    </div>
+    <div class="prob-card fade-up d4">
+      <div class="prob-icon">&#128188;</div>
+      <div class="prob-title">Disconnect from Job Markets</div>
+      <div class="prob-desc">Traditional recommenders suggest <strong style="color:var(--blue);">generic trending courses</strong> rather than targeting the specific skill sets demanded by real employers for any given career transition — leaving learners underprepared for interviews.</div>
+      <div class="prob-impact">
+        <div class="prob-impact-label">Impact</div>
+        <div class="prob-bar"><div class="prob-bar-fill" style="--w:81%;background:linear-gradient(90deg,var(--rose),var(--amber));"></div></div>
+        <span style="font-size:11px;color:var(--rose);font-weight:700;">81%</span>
+      </div>
+      <div class="prob-solution">&#10003; CourseAI maps 25 real job roles to exact skill &amp; course requirements</div>
+    </div>
+    <div class="prob-card fade-up d5">
+      <div class="prob-icon">&#128202;</div>
+      <div class="prob-title">Zero Skill-Gap Visibility</div>
+      <div class="prob-desc">Learners have absolutely <strong style="color:var(--blue);">no visual diagnostic tool</strong> to compare their current skill profile against industry employer thresholds — making career transition planning a guessing game with no actionable data.</div>
+      <div class="prob-impact">
+        <div class="prob-impact-label">Impact</div>
+        <div class="prob-bar"><div class="prob-bar-fill" style="--w:92%;background:linear-gradient(90deg,var(--rose),var(--amber));"></div></div>
+        <span style="font-size:11px;color:var(--rose);font-weight:700;">92%</span>
+      </div>
+      <div class="prob-solution">&#10003; CourseAI's radar chart shows exact gaps vs employer requirements</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ S3: ARCHITECTURE ═══════ -->
+<div class="slide" id="s3">
+  <div class="slide-header fade-up d1">
+    <div class="badge">&#9881; System Overview</div>
+    <div class="slide-title">Architecture &amp; <span class="hl">8-Model Engine</span></div>
+    <div class="slide-sub">End-to-end platform from data ingestion to personalized recommendation delivery</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1.1fr;gap:14px;flex:1;min-height:0;">
+    <!-- Left: Model Zoo -->
+    <div class="col">
+      <div class="card" style="flex-shrink:0;">
+        <div class="card-title">&#9889; Application Layer</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div class="arch-layer">
+            <div class="layer-label">Frontend</div>
+            <div class="arch-node">Glassmorphic UI<div class="sub">Vanilla HTML/CSS/JS</div></div>
+            <div class="arch-sep">&#8594;</div>
+            <div class="arch-node">Chart.js<div class="sub">Radar + Bar charts</div></div>
+            <div class="arch-sep">&#8594;</div>
+            <div class="arch-node">localStorage<div class="sub">Theme + Bookmarks</div></div>
+          </div>
+          <div class="flow-arrow">&#8595;</div>
+          <div class="arch-layer">
+            <div class="layer-label">Backend</div>
+            <div class="arch-node">Flask REST<div class="sub">/recommend</div></div>
+            <div class="arch-sep">&#8594;</div>
+            <div class="arch-node">PyTorch<div class="sub">LightGCN, NCF</div></div>
+            <div class="arch-sep">&#8594;</div>
+            <div class="arch-node">Scikit-learn<div class="sub">UBCF, iALS</div></div>
+          </div>
+          <div class="flow-arrow">&#8595;</div>
+          <div class="arch-layer">
+            <div class="layer-label">Data</div>
+            <div class="arch-node">CSV Datasets<div class="sub">250 courses</div></div>
+            <div class="arch-sep">&#8594;</div>
+            <div class="arch-node">Score Matrices<div class="sub">8 x (150×242)</div></div>
+            <div class="arch-sep">&#8594;</div>
+            <div class="arch-node">ngrok Tunnel<div class="sub">Public HTTPS</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card emerald" style="flex:1;min-height:0;overflow:auto;">
+        <div class="card-title em">&#127882; API Endpoints</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;">
+          <div><span style="color:var(--emerald);">GET</span>  <span style="color:var(--blue);">/api/recommend</span> <span style="color:var(--muted);">→ top-10 courses</span></div>
+          <div><span style="color:var(--amber);">POST</span> <span style="color:var(--blue);">/api/chat</span> <span style="color:var(--muted);">→ AI advisor reply</span></div>
+          <div><span style="color:var(--emerald);">GET</span>  <span style="color:var(--blue);">/api/stats</span> <span style="color:var(--muted);">→ platform stats</span></div>
+          <div><span style="color:var(--amber);">POST</span> <span style="color:var(--blue);">/api/run_pipeline</span> <span style="color:var(--muted);">→ retrain all 8</span></div>
+          <div><span style="color:var(--emerald);">GET</span>  <span style="color:var(--blue);">/figures/&lt;file&gt;</span> <span style="color:var(--muted);">→ static figures</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Right: Model list with scores -->
+    <div class="card" style="overflow:auto;">
+      <div class="card-title">&#127942; 8-Model Recommendation Zoo</div>
+      <div class="model-card fade-left d2">
+        <div class="model-rank">&#9733;</div>
+        <div class="model-info"><div class="model-name">Hybrid Ensemble (Best)</div><div class="model-desc">Weighted ensemble of all 7 base models</div></div>
+        <div class="model-score">85.0%</div>
+      </div>
+      <div style="height:6px;"></div>
+      <div class="model-card fade-left d3">
+        <div class="model-rank">2</div>
+        <div class="model-info"><div class="model-name">LightGCN Graph Neural Net</div><div class="model-desc">Bipartite graph propagation over interactions</div></div>
+        <div class="model-score">82.9%</div>
+      </div>
+      <div class="model-card fade-left d4">
+        <div class="model-rank">3</div>
+        <div class="model-info"><div class="model-name">Neural Collaborative Filtering</div><div class="model-desc">GMF + MLP dual-branch deep learning</div></div>
+        <div class="model-score">80.4%</div>
+      </div>
+      <div class="model-card fade-left d5">
+        <div class="model-rank">4</div>
+        <div class="model-info"><div class="model-name">Semantic Job-Skill Engine</div><div class="model-desc">Career alignment TF-IDF scoring</div></div>
+        <div class="model-score">78.2%</div>
+      </div>
+      <div class="model-card fade-left d6">
+        <div class="model-rank">5</div>
+        <div class="model-info"><div class="model-name">UBCF + VADER Sentiment</div><div class="model-desc">Review NLP weighted collaborative filter</div></div>
+        <div class="model-score">71.2%</div>
+      </div>
+      <div class="model-card fade-left d7">
+        <div class="model-rank">6</div>
+        <div class="model-info"><div class="model-name">Content-Based Filtering</div><div class="model-desc">TF-IDF vector space course matching</div></div>
+        <div class="model-score">68.5%</div>
+      </div>
+      <div class="model-card fade-left d8">
+        <div class="model-rank">7</div>
+        <div class="model-info"><div class="model-name">Item-Based CF (IBCF)</div><div class="model-desc">Adjusted cosine item similarity</div></div>
+        <div class="model-score">64.1%</div>
+      </div>
+      <div class="model-card fade-left" style="transition-delay:.85s!important;">
+        <div class="model-rank">8</div>
+        <div class="model-info"><div class="model-name">Implicit Factorization (iALS)</div><div class="model-desc">Confidence-weighted matrix factorization</div></div>
+        <div class="model-score">61.7%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ S4: RECOMMENDATIONS ═══════ -->
+<div class="slide" id="s4">
+  <div class="slide-header fade-up d1">
+    <div class="badge">&#127919; Feature 1</div>
+    <div class="slide-title">Personalized <span class="hl">Course Recommendations</span></div>
+    <div class="slide-sub">AI-driven recommendations with live search, difficulty filters, 8 model switcher, and affinity match scores</div>
+  </div>
+  <div class="g2x1">
+    <div class="ss-card fade-left d2">
+      <div class="ss-card-title">&#128247; Live Recommendations Dashboard</div>
+      <div class="ss-card-body">
+        <img src="http://127.0.0.1:5000/figures/fig2_recommendations_grid.png" class="ss-cover" alt="Recommendations Grid" style="height:100%;"/>
+      </div>
+    </div>
+    <div class="col fade-right d3">
+      <div class="card" style="flex-shrink:0;">
+        <div class="card-title">&#128101; Profile &amp; Role Selection</div>
+        <div class="feat-item">
+          <div class="feat-icon">&#128101;</div>
+          <div class="feat-body"><strong>50 Learner Profiles</strong><p>Switch between distinct student cohorts — each with unique course histories and preference patterns</p></div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">&#128188;</div>
+          <div class="feat-body"><strong>25 Target Job Roles</strong><p>AI Engineer, Cloud Architect, Cybersecurity Analyst, Data Scientist, MLOps Engineer, and more</p></div>
+        </div>
+      </div>
+      <div class="card" style="flex-shrink:0;">
+        <div class="card-title em">&#127890; Filtering &amp; Search Controls</div>
+        <div class="feat-item">
+          <div class="feat-icon">&#127931;</div>
+          <div class="feat-body"><strong>Difficulty Filter Chips</strong><p>Instant one-click filter by Beginner / Intermediate / Advanced — updates grid in real-time</p></div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">&#128269;</div>
+          <div class="feat-body"><strong>Live Keyword Search</strong><p>Searches course titles, technologies, and skills as you type — no page reload required</p></div>
+        </div>
+      </div>
+      <div class="card emerald">
+        <div class="card-title em">&#127942; Match Score System</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <div style="flex:1;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--emerald);">98.5%</div>
+            <div style="font-size:10px;color:var(--muted);">Top match badge</div>
+          </div>
+          <div style="flex:1;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--blue);">8 Models</div>
+            <div style="font-size:10px;color:var(--muted);">Switchable engines</div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--muted);line-height:1.5;">Each course card displays a dynamic affinity percentage — calculated by the selected recommendation model and shown as a colored badge overlay.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ S5: SYLLABUS & BOOKS ═══════ -->
+<div class="slide" id="s5">
+  <div class="slide-header fade-up d1">
+    <div class="badge">&#128218; Feature 2</div>
+    <div class="slide-title">Course Detail Modal — <span class="hl">Syllabus &amp; Books</span></div>
+    <div class="slide-sub">Click any course card to open a rich detail modal with tabbed weekly modules and curated companion literature</div>
+  </div>
+  <div class="g2">
+    <div class="col fade-left d2">
+      <div class="card" style="flex-shrink:0;">
+        <div class="card-title">&#128203; Syllabus Tab — Weekly Breakdown</div>
+        <ul class="bul">
+          <li><span class="ic bl">&#9654;</span><div><strong>Week-by-Week Module Structure</strong><p>Each week listed with specific topics (e.g., Week 1: Neural Network Fundamentals, Week 2: Backprop &amp; Optimizers)</p></div></li>
+          <li><span class="ic bl">&#9654;</span><div><strong>Estimated Study Hours</strong><p>Time commitment shown per module so learners can plan their schedule realistically</p></div></li>
+          <li><span class="ic bl">&#9654;</span><div><strong>Skill Technology Tags</strong><p>Visual badges: PyTorch, TensorFlow, Transformers, Scikit-learn, Docker, Kubernetes…</p></div></li>
+          <li><span class="ic bl">&#9654;</span><div><strong>Prerequisites Checklist</strong><p>Clear entry requirements listed before enrollment — prevents skill mismatch dropouts</p></div></li>
+        </ul>
+      </div>
+      <div class="ss-card" style="flex:1;min-height:0;">
+        <div class="ss-card-title">&#128247; Syllabus Modal Screenshot</div>
+        <div class="ss-card-body"><img src="http://127.0.0.1:5000/figures/fig3_course_modal_syllabus.png" class="ss-cover" alt="Syllabus" style="height:100%;"/></div>
+      </div>
+    </div>
+    <div class="col fade-right d3">
+      <div class="card emerald" style="flex-shrink:0;">
+        <div class="card-title em">&#128218; Companion Books Tab</div>
+        <ul class="bul">
+          <li><span class="ic">&#9733;</span><div><strong>Curated Reference Books Per Course</strong><p>Each course comes with 2-4 handpicked companion books directly relevant to its topic and difficulty level</p></div></li>
+          <li><span class="ic">&#9733;</span><div><strong>Visual Book Cards with Author &amp; Cover</strong><p>Rich card layout showing book cover image, title, and author attribution for quick visual identification</p></div></li>
+          <li><span class="ic">&#9733;</span><div><strong>One-Click Amazon Purchase Link</strong><p>Direct "Buy on Amazon" button per book — takes the learner straight to the product page</p></div></li>
+          <li><span class="ic">&#9733;</span><div><strong>Topic Alignment Shown</strong><p>Short description explains exactly how the book complements the course curriculum</p></div></li>
+        </ul>
+      </div>
+      <div class="ss-card" style="flex:1;min-height:0;">
+        <div class="ss-card-title">&#128247; Companion Books Screenshot</div>
+        <div class="ss-card-body"><img src="http://127.0.0.1:5000/figures/fig4_course_modal_books.png" class="ss-cover" alt="Books Modal" style="height:100%;"/></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ S6: SKILL GAP RADAR ═══════ -->
+<div class="slide" id="s6">
+  <div class="slide-header fade-up d1">
+    <div class="badge">&#128202; Feature 3</div>
+    <div class="slide-title"><span class="hl">Skill-Gap</span> Diagnostic Radar</div>
+    <div class="slide-sub">Interactive radar chart comparing your current competencies vs employer thresholds for any target job role</div>
+  </div>
+  <div class="g2x1">
+    <div class="col">
+      <div class="ss-card fade-left d2" style="flex:1;min-height:0;">
+        <div class="ss-card-title">&#128202; Skill Radar &amp; Insights Panel</div>
+        <div class="ss-card-body"><img src="http://127.0.0.1:5000/figures/fig5_skill_radar_insights.png" class="ss-cover" alt="Skill Radar" style="height:100%;"/></div>
+      </div>
+      <div class="card fade-left d4" style="flex-shrink:0;">
+        <div class="card-title">&#128200; Live Gap Indicators</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div style="text-align:center;padding:8px;background:rgba(251,113,133,.08);border:1px solid rgba(251,113,133,.2);border-radius:8px;">
+            <div style="font-size:20px;font-weight:900;color:var(--rose);">-32%</div>
+            <div style="font-size:10px;color:var(--muted);">PyTorch Gap</div>
+          </div>
+          <div style="text-align:center;padding:8px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:8px;">
+            <div style="font-size:20px;font-weight:900;color:var(--amber);">-18%</div>
+            <div style="font-size:10px;color:var(--muted);">Cloud Gap</div>
+          </div>
+          <div style="text-align:center;padding:8px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:8px;">
+            <div style="font-size:20px;font-weight:900;color:var(--emerald);">+5%</div>
+            <div style="font-size:10px;color:var(--muted);">Math OK</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col fade-right d3">
+      <div class="card">
+        <div class="card-title">&#127919; How It Works</div>
+        <div class="step"><div class="step-num">1</div><div class="step-content"><strong>Select Target Job Role</strong><span>Choose from 25 careers (AI Engineer, Data Scientist, Cloud Architect, etc.) from the dropdown</span></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><strong>Radar Loads Your Profile</strong><span>Your current skill scores are fetched from the active learner profile and rendered on the radar axes</span></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><strong>Employer Threshold Overlay</strong><span>Industry requirement polygon overlaid — gap areas shown in red, exceeding areas in green</span></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><strong>Gap Summary Generated</strong><span>Text summary below the chart lists specific skill deficits with percentage gap values</span></div></div>
+        <div class="step"><div class="step-num em">5</div><div class="step-content"><strong>Actionable Course Mapping</strong><span>Courses that directly bridge each identified gap are highlighted in the recommendations panel</span></div></div>
+      </div>
+      <div class="card emerald">
+        <div class="card-title em">&#127987; Skill Axes Covered</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          <span class="tag bl">PyTorch / TensorFlow</span>
+          <span class="tag em">Cloud (AWS/GCP/Azure)</span>
+          <span class="tag vl">NLP &amp; Transformers</span>
+          <span class="tag am">Mathematics &amp; Stats</span>
+          <span class="tag ro">Algorithm Design</span>
+          <span class="tag bl">MLOps &amp; Deployment</span>
+          <span class="tag em">Data Engineering</span>
+          <span class="tag vl">Computer Vision</span>
+        </div>
+        <div style="margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5;">Each axis score ranges from 0–100. The radar updates <strong style="color:var(--emerald);">instantly</strong> when you switch between job roles or user profiles.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ S7: MODEL METRICS ═══════ -->
+<div class="slide" id="s7">
+  <div class="slide-header fade-up d1">
+    <div class="badge">&#127942; Feature 4</div>
+    <div class="slide-title">Model <span class="hl">Metrics &amp; Performance</span> Dashboard</div>
+    <div class="slide-sub">Transparent live comparison — see exactly why the Hybrid Ensemble leads all 8 models</div>
+  </div>
+  <div class="g2x1">
+    <div class="col">
+      <div class="ss-card fade-left d2" style="flex:1;min-height:0;">
+        <div class="ss-card-title">&#128202; Model Benchmark Bar Chart</div>
+        <div class="ss-card-body"><img src="http://127.0.0.1:5000/figures/fig6_model_metrics_barchart.png" class="ss-cover" alt="Model Metrics" style="height:100%;"/></div>
+      </div>
+    </div>
+    <div class="col fade-right d3">
+      <div class="card" style="flex-shrink:0;">
+        <div class="card-title em">&#127942; Precision@10 Rankings</div>
+        <div class="prog">
+          <div class="prog-header"><span class="prog-label">&#9733; Hybrid Ensemble</span><span class="prog-val">85.0%</span></div>
+          <div class="prog-track"><div class="prog-fill fill-em" data-w="85"></div></div>
+        </div>
+        <div class="prog">
+          <div class="prog-header"><span class="prog-label">LightGCN</span><span class="prog-val">82.9%</span></div>
+          <div class="prog-track"><div class="prog-fill fill-blue" data-w="82.9"></div></div>
+        </div>
+        <div class="prog">
+          <div class="prog-header"><span class="prog-label">Neural CF (NCF)</span><span class="prog-val">80.4%</span></div>
+          <div class="prog-track"><div class="prog-fill fill-blue" data-w="80.4"></div></div>
+        </div>
+        <div class="prog">
+          <div class="prog-header"><span class="prog-label">Job-Skill Engine</span><span class="prog-val">78.2%</span></div>
+          <div class="prog-track"><div class="prog-fill fill-vl" data-w="78.2"></div></div>
+        </div>
+        <div class="prog">
+          <div class="prog-header"><span class="prog-label">UBCF + VADER</span><span class="prog-val">71.2%</span></div>
+          <div class="prog-track"><div class="prog-fill fill-vl" data-w="71.2"></div></div>
+        </div>
+        <div class="prog">
+          <div class="prog-header"><span class="prog-label">Content-Based</span><span class="prog-val">68.5%</span></div>
+          <div class="prog-track"><div class="prog-fill fill-rose" data-w="68.5"></div></div>
+        </div>
+        <div class="prog">
+          <div class="prog-header"><span class="prog-label">Item-Based CF</span><span class="prog-val">64.1%</span></div>
+          <div class="prog-track"><div class="prog-fill fill-rose" data-w="64.1"></div></div>
+        </div>
+        <div class="prog">
+          <div class="prog-header"><span class="prog-label">iALS Implicit</span><span class="prog-val">61.7%</span></div>
+          <div class="prog-track"><div class="prog-fill fill-rose" data-w="61.7"></div></div>
+        </div>
+      </div>
+      <div class="card emerald">
+        <div class="card-title em">&#128200; Full Metrics Table</div>
+        <table class="mtable">
+          <tr><th>Model</th><th>P@10</th><th>NDCG</th><th>Hit%</th></tr>
+          <tr class="rank-1"><td>Hybrid</td><td>85.0</td><td>89.2</td><td>92.4</td></tr>
+          <tr><td>LightGCN</td><td>82.9</td><td>86.7</td><td>90.6</td></tr>
+          <tr><td>NCF</td><td>80.4</td><td>83.5</td><td>88.9</td></tr>
+          <tr><td>Job-Skill</td><td>78.2</td><td>81.2</td><td>87.2</td></tr>
+          <tr><td>UBCF</td><td>71.2</td><td>74.8</td><td>81.4</td></tr>
+        </table>
+        <div style="margin-top:8px;font-size:10.5px;color:var(--muted);">P@10 = Precision at top-10 &bull; NDCG = Ranking quality &bull; Hit% = Any correct in top-10</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ S8: CHATBOT ═══════ -->
+<div class="slide" id="s8">
+  <div class="slide-header fade-up d1">
+    <div class="badge">&#129302; Feature 5</div>
+    <div class="slide-title"><span class="hl">AI Study Advisor</span> Chatbot</div>
+    <div class="slide-sub">Context-aware conversational mentor — career guidance, roadmaps, and prerequisites on demand</div>
+  </div>
+  <div class="g2x1">
+    <div class="col fade-left d2">
+      <div class="ss-card" style="flex:1;min-height:0;">
+        <div class="ss-card-title">&#129302; AI Chatbot Interface</div>
+        <div class="ss-card-body"><img src="http://127.0.0.1:5000/figures/fig7_ai_chatbot.png" class="ss-cover" alt="AI Chatbot" style="height:100%;"/></div>
+      </div>
+      <!-- Live chat simulation -->
+      <div class="card" style="flex-shrink:0;">
+        <div class="card-title">&#128172; Example Conversation</div>
+        <div style="display:flex;flex-direction:column;">
+          <div class="chat-name user">You</div>
+          <div class="chat-bubble chat-user" style="align-self:flex-end;">How do I switch from Web Dev to AI Engineer?</div>
+          <div class="chat-name ai">CourseAI Advisor</div>
+          <div class="chat-bubble chat-ai">Start with Python fundamentals, then take the Neural Networks course. Based on your profile, you need to close a 32% gap in PyTorch. I recommend: <strong style="color:var(--emerald);">Deep Learning Specialization</strong> next.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col fade-right d3">
+      <div class="card">
+        <div class="card-title">&#129302; AI Mentor Capabilities</div>
+        <div class="feat-item">
+          <div class="feat-icon">&#128173;</div>
+          <div class="feat-body"><strong>Floating Bubble Access</strong><p>Chat icon always visible in bottom-right corner — accessible from any page without losing context</p></div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">&#128188;</div>
+          <div class="feat-body"><strong>Career Transition Advice</strong><p>Answers: "How do I switch to AI Engineer?" with personalized, ordered step-by-step guidance</p></div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">&#127891;</div>
+          <div class="feat-body"><strong>Prerequisite Clarification</strong><p>Instantly explains math, coding level, and tool requirements before you commit to a course</p></div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">&#128220;</div>
+          <div class="feat-body"><strong>Structured Learning Roadmaps</strong><p>Generates exact course sequences (Course A → B → C) based on your live recommendation scores</p></div>
+        </div>
+      </div>
+      <div class="card emerald">
+        <div class="card-title em">&#129504; Context Awareness</div>
+        <ul class="bul">
+          <li><span class="ic">&#10003;</span><div><strong>Session Memory</strong><p>Remembers your selected learner profile and target job role throughout the session</p></div></li>
+          <li><span class="ic">&#10003;</span><div><strong>Recommendation-Aware</strong><p>References your current recommendation scores when suggesting learning paths</p></div></li>
+          <li><span class="ic">&#10003;</span><div><strong>Skill Gap Aware</strong><p>Knows your radar chart results and suggests courses that close the biggest gaps first</p></div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ S9: PRODUCTIVITY ═══════ -->
+<div class="slide" id="s9">
+  <div class="slide-header fade-up d1">
+    <div class="badge">&#128295; Productivity</div>
+    <div class="slide-title">Built-in <span class="hl">Productivity &amp; Operations</span> Tools</div>
+    <div class="slide-sub">Everything you need to manage, save, retrain, and share your learning journey</div>
+  </div>
+  <div class="g2" style="grid-template-rows:1fr 1fr;">
+    <div class="card fade-up d2">
+      <div class="card-title">&#128640; One-Click Pipeline Retraining</div>
+      <div class="feat-item">
+        <div class="feat-icon">&#9881;</div>
+        <div class="feat-body"><strong>Train All 8 Models Button</strong><p>Single click triggers async background retraining of all 8 score matrices (UBCF, LightGCN, NCF, IBCF, iALS, Content, Job-Skill, Hybrid) with zero server downtime</p></div>
+      </div>
+      <div style="background:rgba(6,13,31,.6);border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:6px;">
+        <div style="font-size:10px;color:var(--muted);font-weight:700;margin-bottom:6px;">RETRAINING PROGRESS</div>
+        <div class="prog"><div class="prog-header"><span class="prog-label" style="font-size:10.5px;">Pipeline execution</span><span class="prog-val">~4s total</span></div><div class="prog-track"><div class="prog-fill fill-em" data-w="100"></div></div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+          <span class="tag em">&#10003; Preprocessing</span><span class="tag em">&#10003; UBCF</span><span class="tag em">&#10003; LightGCN</span><span class="tag em">&#10003; NCF</span><span class="tag em">&#10003; Hybrid</span>
+        </div>
+      </div>
+    </div>
+    <div class="card fade-up d3">
+      <div class="card-title em">&#128278; Course Bookmarking System</div>
+      <div class="feat-item">
+        <div class="feat-icon">&#128278;</div>
+        <div class="feat-body"><strong>Bookmark Any Recommendation</strong><p>Click the bookmark icon on any course card to save it to a dedicated "Saved Courses" tab — counter badge in navbar updates instantly</p></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <div style="flex:1;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:24px;font-weight:900;color:var(--emerald);">&#128278;</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">Save Course</div>
+        </div>
+        <div style="flex:1;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:24px;font-weight:900;color:var(--blue);">&#128202;</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">Badge Counter</div>
+        </div>
+        <div style="flex:1;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:24px;font-weight:900;color:var(--violet);">&#128190;</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">localStorage</div>
+        </div>
+      </div>
+    </div>
+    <div class="card fade-up d4">
+      <div class="card-title vl">&#11015; Export Recommendations to CSV</div>
+      <div class="feat-item">
+        <div class="feat-icon">&#128196;</div>
+        <div class="feat-body"><strong>Download as Spreadsheet</strong><p>Export your full recommendation list or bookmarked courses as a structured .csv file — includes course name, match score, difficulty, and skill tags</p></div>
+      </div>
+      <div style="background:rgba(6,13,31,.6);border:1px solid rgba(167,139,250,.2);border-radius:8px;padding:10px;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">
+        Course Name, Score, Level, Tags<br/>
+        <span style="color:var(--violet);">Deep Learning Spec, 98.5%, Advanced, PyTorch</span><br/>
+        <span style="color:var(--violet);">Cloud Architect Pro, 94.2%, Intermediate, AWS</span>
+      </div>
+    </div>
+    <div class="card fade-up d5">
+      <div class="card-title am">&#127761; Dark / Light Mode Theme Switcher</div>
+      <div class="feat-item">
+        <div class="feat-icon">&#127760;</div>
+        <div class="feat-body"><strong>Smooth Animated Toggle</strong><p>One-click switch between dark glassmorphic and bright light themes — 300ms transition animation preserves visual continuity and prevents jarring mode switches</p></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <div style="flex:1;background:#060d1f;border:2px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:18px;">&#127761;</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">Dark Mode</div>
+          <div style="font-size:9px;color:var(--blue);">Default</div>
+        </div>
+        <div style="flex:1;background:#f8fafc;border:2px solid rgba(56,189,248,.4);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:18px;">&#9728;</div>
+          <div style="font-size:10px;color:#64748b;margin-top:4px;">Light Mode</div>
+          <div style="font-size:9px;color:#3b82f6;">Glassmorphic</div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:12px;color:var(--emerald);font-weight:600;">&#8596; Auto-saved</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ S10: SUMMARY ═══════ -->
+<div class="slide" id="s10">
+  <div class="slide-header fade-up d1">
+    <div class="badge">&#127775; Conclusion</div>
+    <div class="slide-title">Deployment, <span class="hl">Impact &amp; Summary</span></div>
+    <div class="slide-sub">Live access, key contributions, and what CourseAI delivers to every learner</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:14px;flex:1;min-height:0;">
+    <!-- Deployment -->
+    <div class="col fade-left d2">
+      <div class="card emerald">
+        <div class="card-title em">&#127760; Live Deployment</div>
+        <div class="step"><div class="step-num em">1</div><div class="step-content"><strong>Local Web Server</strong><span>Running at <code style="color:var(--blue);font-family:monospace;font-size:10.5px;">http://127.0.0.1:5000</code> with zero-cache headers enforced</span></div></div>
+        <div class="step"><div class="step-num em">2</div><div class="step-content"><strong>Public ngrok Tunnel</strong><span>HTTPS tunnel live for peer evaluation, recruiter demos, and professor review</span></div></div>
+        <div class="step"><div class="step-num em">3</div><div class="step-content"><strong>Instant Startup</strong><span>Just run <code style="color:var(--emerald);font-size:10.5px;font-family:monospace;">python app.py</code></span></div></div>
+      </div>
+      <div class="terminal fade-left d4">
+        <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd">python app.py</span></div>
+        <div class="term-line" style="padding-left:12px;"><span class="term-out">* Running on </span><span class="term-url">http://127.0.0.1:5000</span></div>
+        <div class="term-line" style="padding-left:12px;"><span class="term-out">* Debug mode: on</span></div>
+        <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd">ngrok http 5000</span></div>
+        <div class="term-line" style="padding-left:12px;"><span class="term-out">Forwarding </span><span class="term-url">https://xxx.ngrok.io</span></div>
+      </div>
+    </div>
+    <!-- Contributions -->
+    <div class="card fade-up d3">
+      <div class="card-title">&#127775; Key Contributions</div>
+      <ul class="bul">
+        <li><span class="ic" style="font-size:16px;">&#9733;</span><div><strong>Glassmorphic Interactive Dashboard</strong><p>Responsive dark/light glassmorphic UI with smooth animations, Card hover effects, and tab-based navigation</p></div></li>
+        <li><span class="ic" style="font-size:16px;">&#9733;</span><div><strong>8-Model Hybrid Recommendation Engine</strong><p>Achieves 85% Precision@10 and 92.4% Hit Rate through weighted ensemble of 7 base models</p></div></li>
+        <li><span class="ic" style="font-size:16px;">&#9733;</span><div><strong>Rich Course Detail Modals</strong><p>Tabbed weekly syllabus breakdowns with study hours and direct companion book purchase links</p></div></li>
+        <li><span class="ic" style="font-size:16px;">&#9733;</span><div><strong>Skill Gap Radar Diagnostic</strong><p>Interactive Chart.js radar comparing 8 skill axes against 25 employer job threshold profiles</p></div></li>
+        <li><span class="ic" style="font-size:16px;">&#9733;</span><div><strong>Context-Aware AI Chatbot</strong><p>Personalized career advisor chatbot with session memory, roadmap generation, and gap awareness</p></div></li>
+        <li><span class="ic" style="font-size:16px;">&#9733;</span><div><strong>Full Productivity Suite</strong><p>Bookmarks, CSV export, async pipeline retraining, and theme persistence via localStorage</p></div></li>
+      </ul>
+    </div>
+    <!-- Stats -->
+    <div class="col fade-right d4">
+      <div class="card" style="flex-shrink:0;">
+        <div class="card-title">&#128200; Platform Statistics</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="stat-box" style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:10px;">
+            <div class="stat-val" style="font-size:26px;background:linear-gradient(135deg,var(--emerald),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">85%</div>
+            <div class="stat-label">Precision@10</div>
+          </div>
+          <div class="stat-box" style="background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.15);border-radius:10px;">
+            <div class="stat-val" style="font-size:26px;">92.4%</div>
+            <div class="stat-label">Hit Rate</div>
+          </div>
+          <div class="stat-box" style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:10px;">
+            <div class="stat-val" style="font-size:26px;background:linear-gradient(135deg,var(--violet),var(--indigo));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">8</div>
+            <div class="stat-label">AI Models</div>
+          </div>
+          <div class="stat-box" style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.15);border-radius:10px;">
+            <div class="stat-val" style="font-size:26px;background:linear-gradient(135deg,var(--amber),var(--rose));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">250</div>
+            <div class="stat-label">Courses</div>
+          </div>
+        </div>
+      </div>
+      <div class="card emerald" style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+        <div style="font-size:48px;margin-bottom:8px;">&#127979;</div>
+        <div style="font-size:28px;font-weight:900;color:var(--white);margin-bottom:4px;">Thank You</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Questions &amp; Discussion</div>
+        <div style="font-size:11px;color:var(--blue);font-family:monospace;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);padding:6px 14px;border-radius:8px;">http://127.0.0.1:5000</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /slide-area -->
+
+<div id="bottombar">
+  <div class="dot-wrap" onclick="goToSlide(0)"><button class="dot active"></button><div class="dot-label">Title</div></div>
+  <div class="dot-wrap" onclick="goToSlide(1)"><button class="dot"></button><div class="dot-label">Problem</div></div>
+  <div class="dot-wrap" onclick="goToSlide(2)"><button class="dot"></button><div class="dot-label">Architecture</div></div>
+  <div class="dot-wrap" onclick="goToSlide(3)"><button class="dot"></button><div class="dot-label">Feature 1</div></div>
+  <div class="dot-wrap" onclick="goToSlide(4)"><button class="dot"></button><div class="dot-label">Feature 2</div></div>
+  <div class="dot-wrap" onclick="goToSlide(5)"><button class="dot"></button><div class="dot-label">Feature 3</div></div>
+  <div class="dot-wrap" onclick="goToSlide(6)"><button class="dot"></button><div class="dot-label">Feature 4</div></div>
+  <div class="dot-wrap" onclick="goToSlide(7)"><button class="dot"></button><div class="dot-label">Feature 5</div></div>
+  <div class="dot-wrap" onclick="goToSlide(8)"><button class="dot"></button><div class="dot-label">Productivity</div></div>
+  <div class="dot-wrap" onclick="goToSlide(9)"><button class="dot"></button><div class="dot-label">Summary</div></div>
+</div>
+<div class="key-hint">&#8592; &#8594; Arrow keys &bull; Click dots to jump</div>
+
+<script>
+// ── Particle Background ──
+(function(){
+  const c=document.getElementById('bgCanvas');
+  const ctx=c.getContext('2d');
+  let particles=[];
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;}
+  resize();
+  window.addEventListener('resize',resize);
+  for(let i=0;i<60;i++){
+    particles.push({x:Math.random()*c.width,y:Math.random()*c.height,
+      vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
+      r:Math.random()*1.5+.5,a:Math.random()*.4+.05});
+  }
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    particles.forEach(p=>{
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(56,189,248,${p.a})`;ctx.fill();
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=c.width;if(p.x>c.width)p.x=0;
+      if(p.y<0)p.y=c.height;if(p.y>c.height)p.y=0;
+    });
+    // draw connections
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<120){
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x,particles[i].y);
+          ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(56,189,248,${.07*(1-d/120)})`;
+          ctx.lineWidth=.5;ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── Slide Navigation ──
+const slides=document.querySelectorAll('.slide');
+const dots=document.querySelectorAll('.dot');
+const counter=document.getElementById('slide-counter');
+const prevBtn=document.getElementById('prev-btn');
+const nextBtn=document.getElementById('next-btn');
+let current=0;
+
+function animateCounters(slide){
+  slide.querySelectorAll('[data-target]').forEach(el=>{
+    const target=+el.getAttribute('data-target');
+    let val=0;
+    const step=target/40;
+    const timer=setInterval(()=>{
+      val=Math.min(val+step,target);
+      el.textContent=Math.round(val)+(el.closest('.kpi')?.querySelector('.kpi-lbl')?.textContent.includes('%')?'%':'');
+      if(val>=target)clearInterval(timer);
+    },30);
+  });
+}
+
+function animateBars(slide){
+  slide.querySelectorAll('.prog-fill[data-w]').forEach(el=>{
+    setTimeout(()=>{el.style.width=el.getAttribute('data-w')+'%';},100);
+  });
+}
+
+function goToSlide(n){
+  // Exit current
+  slides[current].classList.remove('active');
+  dots[current].classList.remove('active');
+  dots[current].closest('.dot-wrap')?.querySelector('.dot')?.classList.remove('active');
+
+  current=n;
+  const sl=slides[current];
+  sl.classList.add('active');
+  dots[current].classList.add('active');
+
+  counter.textContent=`Slide ${current+1} of ${slides.length}`;
+  prevBtn.disabled=current===0;
+  nextBtn.disabled=current===slides.length-1;
+
+  // Trigger animations
+  setTimeout(()=>{
+    animateCounters(sl);
+    animateBars(sl);
+  },300);
+}
+
+function changeSlide(d){const n=current+d;if(n>=0&&n<slides.length)goToSlide(n);}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();changeSlide(1);}
+  if(e.key==='ArrowLeft'){e.preventDefault();changeSlide(-1);}
+  if(e.key==='Home')goToSlide(0);
+  if(e.key==='End')goToSlide(slides.length-1);
+});
+
+// Dot sync
+dots.forEach((d,i)=>{d.closest('.dot-wrap')?.addEventListener('click',()=>goToSlide(i));});
+
+// Touch swipe
+let tx=0;
+document.getElementById('slide-area').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+document.getElementById('slide-area').addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>50)changeSlide(dx<0?1:-1);
+});
+
+function toggleFS(){
+  if(!document.fullscreenElement)document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+// Init first slide animations
+setTimeout(()=>{animateCounters(slides[0]);animateBars(slides[0]);},400);
+</script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+name,institution,course_id
+Generative AI & LLM Architecture,DeepLearning.AI,course-001
+Applied Machine Learning with Scikit-Learn,DeepLearning.AI,course-002
+PyTorch for Deep Learning Systems,Stanford University,course-003
+MERN Stack Application Development,Google,course-004
+AWS Cloud Solutions Architect,Duke University,course-005
+Apache Spark & Big Data Analytics,MIT,course-006
+Network Defense & Information Security,DeepLearning.AI,course-007
+Design Patterns in Object-Oriented Code,Stanford University,course-008
+Generative AI & LLM Architecture,Harvard Online,course-009
+Applied Machine Learning with Scikit-Learn,Google,course-010
+PyTorch for Deep Learning Systems,MIT,course-011
+MERN Stack Application Development,Duke University,course-012
+AWS Cloud Solutions Architect,Google,course-013
+Apache Spark & Big Data Analytics,IBM,course-014
+Network Defense & Information Security,MIT,course-015
+Design Patterns in Object-Oriented Code,University of Michigan,course-016
+Generative AI & LLM Architecture - Part 3,University of Michigan,course-017
+Applied Machine Learning with Scikit-Learn - Part 3,Duke University,course-018
+PyTorch for Deep Learning Systems - Part 3,IBM,course-019
+MERN Stack Application Development - Part 3,AWS Training,course-020
+AWS Cloud Solutions Architect - Part 3,IBM,course-021
+Apache Spark & Big Data Analytics - Part 3,IBM,course-022
+Network Defense & Information Security - Part 3,Meta,course-023
+Design Patterns in Object-Oriented Code - Part 3,Stanford University,course-024
+Generative AI & LLM Architecture - Part 4,University of Michigan,course-025
+Applied Machine Learning with Scikit-Learn - Part 4,MIT,course-026
+PyTorch for Deep Learning Systems - Part 4,MIT,course-027
+MERN Stack Application Development - Part 4,University of Michigan,course-028
+AWS Cloud Solutions Architect - Part 4,University of Michigan,course-029
+Apache Spark & Big Data Analytics - Part 4,Stanford University,course-030
+Network Defense & Information Security - Part 4,Duke University,course-031
+Design Patterns in Object-Oriented Code - Part 4,Duke University,course-032
+Generative AI & LLM Architecture (Advanced Track 33),Harvard Online,course-033
+Applied Machine Learning with Scikit-Learn (Advanced Track 34),University of Michigan,course-034
+PyTorch for Deep Learning Systems (Advanced Track 35),Google,course-035
+MERN Stack Application Development (Advanced Track 36),Google,course-036
+AWS Cloud Solutions Architect (Advanced Track 37),DeepLearning.AI,course-037
+Apache Spark & Big Data Analytics (Advanced Track 38),Duke University,course-038
+Network Defense & Information Security (Advanced Track 39),Duke University,course-039
+Design Patterns in Object-Oriented Code (Advanced Track 40),Meta,course-040
+Generative AI & LLM Architecture (Advanced Track 41),DeepLearning.AI,course-041
+Applied Machine Learning with Scikit-Learn (Advanced Track 42),Google,course-042
+PyTorch for Deep Learning Systems (Advanced Track 43),Duke University,course-043
+MERN Stack Application Development (Advanced Track 44),Harvard Online,course-044
+AWS Cloud Solutions Architect (Advanced Track 45),Duke University,course-045
+Apache Spark & Big Data Analytics (Advanced Track 46),Stanford University,course-046
+Network Defense & Information Security (Advanced Track 47),Harvard Online,course-047
+Design Patterns in Object-Oriented Code (Advanced Track 48),Google,course-048
+Generative AI & LLM Architecture (Advanced Track 49),University of Michigan,course-049
+Applied Machine Learning with Scikit-Learn (Advanced Track 50),Harvard Online,course-050
+PyTorch for Deep Learning Systems (Advanced Track 51),Google,course-051
+MERN Stack Application Development (Advanced Track 52),DeepLearning.AI,course-052
+AWS Cloud Solutions Architect (Advanced Track 53),Google,course-053
+Apache Spark & Big Data Analytics (Advanced Track 54),IBM,course-054
+Network Defense & Information Security (Advanced Track 55),DeepLearning.AI,course-055
+Design Patterns in Object-Oriented Code (Advanced Track 56),Harvard Online,course-056
+Generative AI & LLM Architecture (Advanced Track 57),Google,course-057
+Applied Machine Learning with Scikit-Learn (Advanced Track 58),Harvard Online,course-058
+PyTorch for Deep Learning Systems (Advanced Track 59),MIT,course-059
+MERN Stack Application Development (Advanced Track 60),MIT,course-060
+AWS Cloud Solutions Architect (Advanced Track 61),MIT,course-061
+Apache Spark & Big Data Analytics (Advanced Track 62),Meta,course-062
+Network Defense & Information Security (Advanced Track 63),IBM,course-063
+Design Patterns in Object-Oriented Code (Advanced Track 64),Meta,course-064
+Generative AI & LLM Architecture (Advanced Track 65),Stanford University,course-065
+Applied Machine Learning with Scikit-Learn (Advanced Track 66),IBM,course-066
+PyTorch for Deep Learning Systems (Advanced Track 67),Google,course-067
+MERN Stack Application Development (Advanced Track 68),IBM,course-068
+AWS Cloud Solutions Architect (Advanced Track 69),Stanford University,course-069
+Apache Spark & Big Data Analytics (Advanced Track 70),IBM,course-070
+Network Defense & Information Security (Advanced Track 71),Duke University,course-071
+Design Patterns in Object-Oriented Code (Advanced Track 72),Google,course-072
+Generative AI & LLM Architecture (Advanced Track 73),MIT,course-073
+Applied Machine Learning with Scikit-Learn (Advanced Track 74),Harvard Online,course-074
+PyTorch for Deep Learning Systems (Advanced Track 75),AWS Training,course-075
+MERN Stack Application Development (Advanced Track 76),Meta,course-076
+AWS Cloud Solutions Architect (Advanced Track 77),AWS Training,course-077
+Apache Spark & Big Data Analytics (Advanced Track 78),Harvard Online,course-078
+Network Defense & Information Security (Advanced Track 79),Meta,course-079
+Design Patterns in Object-Oriented Code (Advanced Track 80),DeepLearning.AI,course-080
+Generative AI & LLM Architecture (Advanced Track 81),Meta,course-081
+Applied Machine Learning with Scikit-Learn (Advanced Track 82),Meta,course-082
+PyTorch for Deep Learning Systems (Advanced Track 83),AWS Training,course-083
+MERN Stack Application Development (Advanced Track 84),Google,course-084
+AWS Cloud Solutions Architect (Advanced Track 85),Duke University,course-085
+Apache Spark & Big Data Analytics (Advanced Track 86),IBM,course-086
+Network Defense & Information Security (Advanced Track 87),Google,course-087
+Design Patterns in Object-Oriented Code (Advanced Track 88),Stanford University,course-088
+Generative AI & LLM Architecture (Advanced Track 89),Meta,course-089
+Applied Machine Learning with Scikit-Learn (Advanced Track 90),Meta,course-090
+PyTorch for Deep Learning Systems (Advanced Track 91),DeepLearning.AI,course-091
+MERN Stack Application Development (Advanced Track 92),Harvard Online,course-092
+AWS Cloud Solutions Architect (Advanced Track 93),Duke University,course-093
+Apache Spark & Big Data Analytics (Advanced Track 94),Duke University,course-094
+Network Defense & Information Security (Advanced Track 95),Harvard Online,course-095
+Design Patterns in Object-Oriented Code (Advanced Track 96),MIT,course-096
+Generative AI & LLM Architecture (Advanced Track 97),Google,course-097
+Applied Machine Learning with Scikit-Learn (Advanced Track 98),MIT,course-098
+PyTorch for Deep Learning Systems (Advanced Track 99),Google,course-099
+MERN Stack Application Development (Advanced Track 100),Meta,course-100
+AWS Cloud Solutions Architect (Advanced Track 101),Google,course-101
+Apache Spark & Big Data Analytics (Advanced Track 102),AWS Training,course-102
+Network Defense & Information Security (Advanced Track 103),Meta,course-103
+Design Patterns in Object-Oriented Code (Advanced Track 104),Google,course-104
+Generative AI & LLM Architecture (Advanced Track 105),Meta,course-105
+Applied Machine Learning with Scikit-Learn (Advanced Track 106),AWS Training,course-106
+PyTorch for Deep Learning Systems (Advanced Track 107),Duke University,course-107
+MERN Stack Application Development (Advanced Track 108),Duke University,course-108
+AWS Cloud Solutions Architect (Advanced Track 109),DeepLearning.AI,course-109
+Apache Spark & Big Data Analytics (Advanced Track 110),DeepLearning.AI,course-110
+Network Defense & Information Security (Advanced Track 111),Google,course-111
+Design Patterns in Object-Oriented Code (Advanced Track 112),Duke University,course-112
+Generative AI & LLM Architecture (Advanced Track 113),MIT,course-113
+Applied Machine Learning with Scikit-Learn (Advanced Track 114),IBM,course-114
+PyTorch for Deep Learning Systems (Advanced Track 115),AWS Training,course-115
+MERN Stack Application Development (Advanced Track 116),AWS Training,course-116
+AWS Cloud Solutions Architect (Advanced Track 117),MIT,course-117
+Apache Spark & Big Data Analytics (Advanced Track 118),Harvard Online,course-118
+Network Defense & Information Security (Advanced Track 119),Meta,course-119
+Design Patterns in Object-Oriented Code (Advanced Track 120),Duke University,course-120
+Generative AI & LLM Architecture (Advanced Track 121),Harvard Online,course-121
+Applied Machine Learning with Scikit-Learn (Advanced Track 122),Google,course-122
+PyTorch for Deep Learning Systems (Advanced Track 123),Duke University,course-123
+MERN Stack Application Development (Advanced Track 124),Duke University,course-124
+AWS Cloud Solutions Architect (Advanced Track 125),MIT,course-125
+Apache Spark & Big Data Analytics (Advanced Track 126),Stanford University,course-126
+Network Defense & Information Security (Advanced Track 127),Meta,course-127
+Design Patterns in Object-Oriented Code (Advanced Track 128),Duke University,course-128
+Generative AI & LLM Architecture (Advanced Track 129),Meta,course-129
+Applied Machine Learning with Scikit-Learn (Advanced Track 130),Harvard Online,course-130
+PyTorch for Deep Learning Systems (Advanced Track 131),Duke University,course-131
+MERN Stack Application Development (Advanced Track 132),Google,course-132
+AWS Cloud Solutions Architect (Advanced Track 133),Google,course-133
+Apache Spark & Big Data Analytics (Advanced Track 134),Google,course-134
+Network Defense & Information Security (Advanced Track 135),Harvard Online,course-135
+Design Patterns in Object-Oriented Code (Advanced Track 136),IBM,course-136
+Generative AI & LLM Architecture (Advanced Track 137),MIT,course-137
+Applied Machine Learning with Scikit-Learn (Advanced Track 138),MIT,course-138
+PyTorch for Deep Learning Systems (Advanced Track 139),Duke University,course-139
+MERN Stack Application Development (Advanced Track 140),IBM,course-140
+AWS Cloud Solutions Architect (Advanced Track 141),Harvard Online,course-141
+Apache Spark & Big Data Analytics (Advanced Track 142),Harvard Online,course-142
+Network Defense & Information Security (Advanced Track 143),AWS Training,course-143
+Design Patterns in Object-Oriented Code (Advanced Track 144),Google,course-144
+Generative AI & LLM Architecture (Advanced Track 145),Google,course-145
+Applied Machine Learning with Scikit-Learn (Advanced Track 146),Duke University,course-146
+PyTorch for Deep Learning Systems (Advanced Track 147),MIT,course-147
+MERN Stack Application Development (Advanced Track 148),Google,course-148
+AWS Cloud Solutions Architect (Advanced Track 149),DeepLearning.AI,course-149
+Apache Spark & Big Data Analytics (Advanced Track 150),IBM,course-150
+Network Defense & Information Security (Advanced Track 151),DeepLearning.AI,course-151
+Design Patterns in Object-Oriented Code (Advanced Track 152),Harvard Online,course-152
+Generative AI & LLM Architecture (Advanced Track 153),University of Michigan,course-153
+Applied Machine Learning with Scikit-Learn (Advanced Track 154),AWS Training,course-154
+PyTorch for Deep Learning Systems (Advanced Track 155),Stanford University,course-155
+MERN Stack Application Development (Advanced Track 156),IBM,course-156
+AWS Cloud Solutions Architect (Advanced Track 157),Duke University,course-157
+Apache Spark & Big Data Analytics (Advanced Track 158),IBM,course-158
+Network Defense & Information Security (Advanced Track 159),Meta,course-159
+Design Patterns in Object-Oriented Code (Advanced Track 160),University of Michigan,course-160
+Generative AI & LLM Architecture (Advanced Track 161),Harvard Online,course-161
+Applied Machine Learning with Scikit-Learn (Advanced Track 162),Duke University,course-162
+PyTorch for Deep Learning Systems (Advanced Track 163),IBM,course-163
+MERN Stack Application Development (Advanced Track 164),Stanford University,course-164
+AWS Cloud Solutions Architect (Advanced Track 165),Harvard Online,course-165
+Apache Spark & Big Data Analytics (Advanced Track 166),DeepLearning.AI,course-166
+Network Defense & Information Security (Advanced Track 167),MIT,course-167
+Design Patterns in Object-Oriented Code (Advanced Track 168),Google,course-168
+Generative AI & LLM Architecture (Advanced Track 169),Harvard Online,course-169
+Applied Machine Learning with Scikit-Learn (Advanced Track 170),Meta,course-170
+PyTorch for Deep Learning Systems (Advanced Track 171),MIT,course-171
+MERN Stack Application Development (Advanced Track 172),IBM,course-172
+AWS Cloud Solutions Architect (Advanced Track 173),Harvard Online,course-173
+Apache Spark & Big Data Analytics (Advanced Track 174),Meta,course-174
+Network Defense & Information Security (Advanced Track 175),Duke University,course-175
+Design Patterns in Object-Oriented Code (Advanced Track 176),Stanford University,course-176
+Generative AI & LLM Architecture (Advanced Track 177),Duke University,course-177
+Applied Machine Learning with Scikit-Learn (Advanced Track 178),IBM,course-178
+PyTorch for Deep Learning Systems (Advanced Track 179),DeepLearning.AI,course-179
+MERN Stack Application Development (Advanced Track 180),Duke University,course-180
+AWS Cloud Solutions Architect (Advanced Track 181),MIT,course-181
+Apache Spark & Big Data Analytics (Advanced Track 182),DeepLearning.AI,course-182
+Network Defense & Information Security (Advanced Track 183),University of Michigan,course-183
+Design Patterns in Object-Oriented Code (Advanced Track 184),IBM,course-184
+Generative AI & LLM Architecture (Advanced Track 185),IBM,course-185
+Applied Machine Learning with Scikit-Learn (Advanced Track 186),AWS Training,course-186
+PyTorch for Deep Learning Systems (Advanced Track 187),MIT,course-187
+MERN Stack Application Development (Advanced Track 188),Duke University,course-188
+AWS Cloud Solutions Architect (Advanced Track 189),MIT,course-189
+Apache Spark & Big Data Analytics (Advanced Track 190),Duke University,course-190
+Network Defense & Information Security (Advanced Track 191),MIT,course-191
+Design Patterns in Object-Oriented Code (Advanced Track 192),Stanford University,course-192
+Generative AI & LLM Architecture (Advanced Track 193),Duke University,course-193
+Applied Machine Learning with Scikit-Learn (Advanced Track 194),Google,course-194
+PyTorch for Deep Learning Systems (Advanced Track 195),DeepLearning.AI,course-195
+MERN Stack Application Development (Advanced Track 196),Duke University,course-196
+AWS Cloud Solutions Architect (Advanced Track 197),MIT,course-197
+Apache Spark & Big Data Analytics (Advanced Track 198),Harvard Online,course-198
+Network Defense & Information Security (Advanced Track 199),IBM,course-199
+Design Patterns in Object-Oriented Code (Advanced Track 200),DeepLearning.AI,course-200
+Generative AI & LLM Architecture (Advanced Track 201),Meta,course-201
+Applied Machine Learning with Scikit-Learn (Advanced Track 202),Meta,course-202
+PyTorch for Deep Learning Systems (Advanced Track 203),MIT,course-203
+MERN Stack Application Development (Advanced Track 204),Google,course-204
+AWS Cloud Solutions Architect (Advanced Track 205),Google,course-205
+Apache Spark & Big Data Analytics (Advanced Track 206),Meta,course-206
+Network Defense & Information Security (Advanced Track 207),DeepLearning.AI,course-207
+Design Patterns in Object-Oriented Code (Advanced Track 208),University of Michigan,course-208
+Generative AI & LLM Architecture (Advanced Track 209),IBM,course-209
+Applied Machine Learning with Scikit-Learn (Advanced Track 210),Meta,course-210
+PyTorch for Deep Learning Systems (Advanced Track 211),Duke University,course-211
+MERN Stack Application Development (Advanced Track 212),University of Michigan,course-212
+AWS Cloud Solutions Architect (Advanced Track 213),MIT,course-213
+Apache Spark & Big Data Analytics (Advanced Track 214),Google,course-214
+Network Defense & Information Security (Advanced Track 215),University of Michigan,course-215
+Design Patterns in Object-Oriented Code (Advanced Track 216),Harvard Online,course-216
+Generative AI & LLM Architecture (Advanced Track 217),IBM,course-217
+Applied Machine Learning with Scikit-Learn (Advanced Track 218),IBM,course-218
+PyTorch for Deep Learning Systems (Advanced Track 219),Stanford University,course-219
+MERN Stack Application Development (Advanced Track 220),IBM,course-220
+AWS Cloud Solutions Architect (Advanced Track 221),DeepLearning.AI,course-221
+Apache Spark & Big Data Analytics (Advanced Track 222),AWS Training,course-222
+Network Defense & Information Security (Advanced Track 223),Harvard Online,course-223
+Design Patterns in Object-Oriented Code (Advanced Track 224),Meta,course-224
+Generative AI & LLM Architecture (Advanced Track 225),DeepLearning.AI,course-225
+Applied Machine Learning with Scikit-Learn (Advanced Track 226),AWS Training,course-226
+PyTorch for Deep Learning Systems (Advanced Track 227),AWS Training,course-227
+MERN Stack Application Development (Advanced Track 228),DeepLearning.AI,course-228
+AWS Cloud Solutions Architect (Advanced Track 229),Duke University,course-229
+Apache Spark & Big Data Analytics (Advanced Track 230),Meta,course-230
+Network Defense & Information Security (Advanced Track 231),MIT,course-231
+Design Patterns in Object-Oriented Code (Advanced Track 232),DeepLearning.AI,course-232
+Generative AI & LLM Architecture (Advanced Track 233),University of Michigan,course-233
+Applied Machine Learning with Scikit-Learn (Advanced Track 234),DeepLearning.AI,course-234
+PyTorch for Deep Learning Systems (Advanced Track 235),AWS Training,course-235
+MERN Stack Application Development (Advanced Track 236),Duke University,course-236
+AWS Cloud Solutions Architect (Advanced Track 237),MIT,course-237
+Apache Spark & Big Data Analytics (Advanced Track 238),MIT,course-238
+Network Defense & Information Security (Advanced Track 239),University of Michigan,course-239
+Design Patterns in Object-Oriented Code (Advanced Track 240),IBM,course-240
+Generative AI & LLM Architecture (Advanced Track 241),Meta,course-241
+Applied Machine Learning with Scikit-Learn (Advanced Track 242),University of Michigan,course-242
+PyTorch for Deep Learning Systems (Advanced Track 243),IBM,course-243
+MERN Stack Application Development (Advanced Track 244),Duke University,course-244
+AWS Cloud Solutions Architect (Advanced Track 245),MIT,course-245
+Apache Spark & Big Data Analytics (Advanced Track 246),DeepLearning.AI,course-246
+Network Defense & Information Security (Advanced Track 247),MIT,course-247
+Design Patterns in Object-Oriented Code (Advanced Track 248),Google,course-248
+Generative AI & LLM Architecture (Advanced Track 249),University of Michigan,course-249
+Applied Machine Learning with Scikit-Learn (Advanced Track 250),IBM,course-250

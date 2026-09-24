@@ -1,0 +1,2561 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourseAI — Intelligent Course Recommendation & Job Skill Gap Engine</title>
+    <meta name="description" content="AI-powered course recommendation system using LightGCN, NCF, and hybrid ensemble models to find your perfect learning path.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root[data-theme="dark"] {
+            --bg-primary: #060d1f;
+            --bg-secondary: #0b1530;
+            --card-bg: rgba(16, 28, 58, 0.85);
+            --card-bg-hover: rgba(22, 38, 75, 0.95);
+            --card-border: rgba(99, 165, 255, 0.12);
+            --card-border-active: rgba(56, 189, 248, 0.4);
+            --accent-blue: #38bdf8;
+            --accent-indigo: #818cf8;
+            --accent-emerald: #34d399;
+            --accent-amber: #fbbf24;
+            --accent-rose: #fb7185;
+            --accent-violet: #a78bfa;
+            --text-main: #f0f6ff;
+            --text-muted: #7a95c0;
+            --text-soft: #94a3b8;
+            --shadow-glow: rgba(56, 189, 248, 0.15);
+            --gradient-hero: linear-gradient(135deg, #060d1f 0%, #0b1a40 50%, #0f0d2a 100%);
+        }
+        :root[data-theme="light"] {
+            --bg-primary: #f0f4ff;
+            --bg-secondary: #e8eeff;
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-bg-hover: rgba(245, 248, 255, 0.98);
+            --card-border: rgba(100, 140, 220, 0.2);
+            --card-border-active: rgba(56, 120, 248, 0.5);
+            --accent-blue: #0369a1;
+            --accent-indigo: #4f46e5;
+            --accent-emerald: #059669;
+            --accent-amber: #d97706;
+            --accent-rose: #e11d48;
+            --accent-violet: #7c3aed;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-soft: #64748b;
+            --shadow-glow: rgba(56, 120, 248, 0.1);
+            --gradient-hero: linear-gradient(135deg, #e8eeff 0%, #dde8ff 50%, #ede8ff 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+        body {
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(ellipse at 10% 0%, rgba(56,189,248,0.12) 0px, transparent 55%),
+                radial-gradient(ellipse at 90% 100%, rgba(129,140,248,0.1) 0px, transparent 55%),
+                radial-gradient(ellipse at 50% 50%, rgba(167,139,250,0.05) 0px, transparent 70%);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2.5rem;
+            background: rgba(6, 13, 31, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 500;
+        }
+        [data-theme="light"] .navbar { background: rgba(240, 244, 255, 0.92); }
+
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.03em;
+        }
+        .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-link {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .nav-link:hover { color: var(--accent-blue); }
+
+        .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+
+        .theme-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            width: 2.5rem; height: 2.5rem;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 1.15rem;
+            transition: all 0.2s;
+        }
+        .theme-toggle:hover { border-color: var(--accent-blue); transform: rotate(20deg); }
+
+        .saved-count-badge {
+            background: var(--accent-indigo);
+            color: white;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            min-width: 1.4rem;
+            text-align: center;
+        }
+
+        /* ── MAIN CONTAINER ── */
+        .container { max-width: 1380px; margin: 0 auto; padding: 2rem 2.5rem; }
+
+        /* ── HERO ── */
+        .hero-banner {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 1.75rem;
+            padding: 2.5rem 3rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 2.5rem;
+            align-items: center;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -10%;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(56,189,248,0.07) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        @media (max-width: 900px) { .hero-banner { grid-template-columns: 1fr; } }
+
+        .hero-content h1 {
+            font-size: 2.6rem;
+            font-weight: 900;
+            line-height: 1.15;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo) 50%, var(--accent-violet) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -0.03em;
+        }
+        .hero-content p { color: var(--text-muted); font-size: 1rem; line-height: 1.7; margin-bottom: 1.75rem; max-width: 520px; }
+
+        .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+        .btn {
+            background: linear-gradient(135deg, #0284c7, #4f46e5);
+            color: white;
+            border: none;
+            padding: 0.875rem 1.75rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 20px rgba(2,132,199,0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(2,132,199,0.45); }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--card-border-active);
+            color: var(--accent-blue);
+            box-shadow: none;
+        }
+        .btn-outline:hover { background: rgba(56,189,248,0.1); box-shadow: 0 4px 15px rgba(56,189,248,0.2); }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.82rem; border-radius: 0.5rem; }
+
+        .hero-clipart-img {
+            width: 100%;
+            height: auto;
+            border-radius: 1.25rem;
+            box-shadow: 0 16px 40px rgba(56,189,248,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.4s ease;
+        }
+        .hero-clipart-img:hover { transform: scale(1.02) rotate(-0.5deg); }
+
+        /* ── STATS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            padding: 1.5rem 1.75rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            transition: all 0.25s ease;
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0; height: 3px;
+            border-radius: 0 0 1.25rem 1.25rem;
+        }
+        .stat-card:nth-child(1)::after { background: linear-gradient(90deg, var(--accent-blue), var(--accent-indigo)); }
+        .stat-card:nth-child(2)::after { background: linear-gradient(90deg, var(--accent-indigo), var(--accent-violet)); }
+        .stat-card:nth-child(3)::after { background: linear-gradient(90deg, var(--accent-emerald), var(--accent-blue)); }
+        .stat-card:nth-child(4)::after { background: linear-gradient(90deg, var(--accent-amber), var(--accent-rose)); }
+        .stat-card:nth-child(5)::after { background: linear-gradient(90deg, var(--accent-rose), var(--accent-violet)); }
+
+        .stat-card:hover { transform: translateY(-3px); border-color: var(--card-border-active); }
+        .stat-card .label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+        .stat-card .value { font-size: 2.1rem; font-weight: 900; margin-top: 0.4rem; color: var(--text-main); letter-spacing: -0.03em; }
+        .stat-card .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+
+        /* ── TABS ── */
+        .tabs-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 1rem;
+            padding: 0.4rem;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 0.65rem 1rem;
+            border: none;
+            border-radius: 0.65rem;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #0284c7, #4f46e5);
+            color: white;
+            box-shadow: 0 4px 12px rgba(2,132,199,0.35);
+        }
+        .tab-btn:hover:not(.active) { color: var(--text-main); background: rgba(56,189,248,0.08); }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── MAIN GRID ── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 1.75rem;
+        }
+        @media (max-width: 992px) { .main-grid { grid-template-columns: 1fr; } }
+
+        /* ── CONTROL PANEL ── */
+        .control-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            height: fit-content;
+            position: sticky;
+            top: 5rem;
+        }
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .form-select, .form-input {
+            width: 100%;
+            background: rgba(6, 13, 31, 0.6);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 0.7rem 0.85rem;
+            border-radius: 0.6rem;
+            outline: none;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+        [data-theme="light"] .form-select, [data-theme="light"] .form-input { background: rgba(240, 245, 255, 0.7); }
+        .form-select:focus, .form-input:focus { border-color: var(--accent-blue); }
+
+        .search-wrapper { position: relative; margin-bottom: 1.25rem; }
+        .search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem; pointer-events: none; }
+        .search-input {
+            width: 100%;
+            background: rgba(6,13,31,0.6);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 0.7rem 0.85rem 0.7rem 2.5rem;
+            border-radius: 0.6rem;
+            outline: none;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+        [data-theme="light"] .search-input { background: rgba(240,245,255,0.7); }
+        .search-input:focus { border-color: var(--accent-blue); }
+
+        .filter-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.25rem; }
+        .filter-chip {
+            background: rgba(56,189,248,0.1);
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.3rem 0.65rem;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-chip.active { background: rgba(56,189,248,0.2); color: var(--accent-blue); border-color: var(--accent-blue); }
+        .filter-chip:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+        .divider { border: none; border-top: 1px solid var(--card-border); margin: 1.25rem 0; }
+
+        /* ── RESULTS PANEL ── */
+        .results-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+        }
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .results-header h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; }
+
+        .view-toggle { display: flex; gap: 0.4rem; }
+        .view-btn-toggle {
+            width: 2rem; height: 2rem;
+            border-radius: 0.4rem;
+            border: 1px solid var(--card-border);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .view-btn-toggle.active { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+
+        /* ── COURSE CARDS LIST VIEW ── */
+        .course-list-view { display: flex; flex-direction: column; gap: 1rem; }
+
+        .course-card {
+            background: rgba(11,21,48,0.5);
+            border: 1px solid var(--card-border);
+            border-radius: 0.875rem;
+            padding: 1.25rem 1.5rem;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        [data-theme="light"] .course-card { background: rgba(245, 248, 255, 0.7); }
+        .course-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--accent-blue), var(--accent-indigo));
+            border-radius: 4px 0 0 4px;
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+        .course-card:hover { border-color: var(--card-border-active); transform: translateX(4px); background: var(--card-bg-hover); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+        .course-card:hover::before { opacity: 1; }
+        .course-card.bookmarked { border-color: rgba(251,191,36,0.4); }
+        .course-card.bookmarked::before { background: linear-gradient(180deg, var(--accent-amber), #f59e0b); opacity: 1; }
+        .course-card.in-compare { border-color: rgba(167,139,250,0.5); }
+
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+        .card-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+        .icon-btn {
+            width: 2rem; height: 2rem;
+            border-radius: 0.4rem;
+            border: 1px solid var(--card-border);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .icon-btn:hover { border-color: var(--accent-amber); color: var(--accent-amber); }
+        .icon-btn.bookmarked { color: var(--accent-amber); border-color: var(--accent-amber); background: rgba(251,191,36,0.1); }
+        .icon-btn.compared { color: var(--accent-violet); border-color: var(--accent-violet); background: rgba(167,139,250,0.1); }
+
+        .course-info h3 { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.3rem; }
+        .course-meta { font-size: 0.82rem; color: var(--accent-blue); margin-bottom: 0.5rem; font-weight: 500; }
+        .course-desc { font-size: 0.84rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 0.75rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        .course-skills { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+        .skill-badge {
+            background: rgba(56,189,248,0.12);
+            color: var(--accent-blue);
+            font-size: 0.72rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 1rem;
+            font-weight: 600;
+        }
+
+        .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 0.85rem; flex-wrap: wrap; gap: 0.5rem; }
+        .view-details-btn {
+            background: rgba(129,140,248,0.12);
+            color: var(--accent-indigo);
+            border: 1px solid rgba(129,140,248,0.25);
+            font-size: 0.78rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 0.4rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .view-details-btn:hover { background: rgba(129,140,248,0.25); }
+
+        .score-badge {
+            background: linear-gradient(135deg, #059669, #34d399);
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 0.4rem;
+            font-weight: 800;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        .rating-stars { font-size: 0.8rem; color: var(--accent-amber); }
+        .progress-indicator {
+            font-size: 0.73rem;
+            font-weight: 600;
+            padding: 0.2rem 0.55rem;
+            border-radius: 1rem;
+        }
+        .progress-saved { background: rgba(251,191,36,0.15); color: var(--accent-amber); }
+        .progress-enrolled { background: rgba(56,189,248,0.15); color: var(--accent-blue); }
+        .progress-completed { background: rgba(52,211,153,0.15); color: var(--accent-emerald); }
+
+        /* ── GRID VIEW ── */
+        .course-grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+        .course-card-grid {
+            background: rgba(11,21,48,0.5);
+            border: 1px solid var(--card-border);
+            border-radius: 0.875rem;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        [data-theme="light"] .course-card-grid { background: rgba(245, 248, 255, 0.7); }
+        .course-card-grid:hover { border-color: var(--card-border-active); transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
+        .grid-rank { font-size: 2rem; font-weight: 900; color: rgba(56,189,248,0.2); position: absolute; top: 0.75rem; right: 0.75rem; }
+        .grid-score { display: inline-block; background: linear-gradient(135deg, #059669, #34d399); color: white; padding: 0.2rem 0.55rem; border-radius: 0.4rem; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.6rem; }
+
+        /* ── LOADING ── */
+        .loading-spinner {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+            display: none;
+        }
+        .spinner { width: 40px; height: 40px; border: 3px solid var(--card-border); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(6,13,31,0.88);
+            backdrop-filter: blur(12px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+        .modal-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem;
+            width: 100%;
+            max-width: 940px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2.25rem;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.7);
+            position: relative;
+            animation: modalIn 0.25s ease;
+        }
+        @keyframes modalIn { from { opacity:0; transform: scale(0.95) translateY(10px); } to { opacity:1; transform: scale(1) translateY(0); } }
+
+        .close-modal {
+            position: absolute; top: 1.25rem; right: 1.25rem;
+            background: rgba(255,255,255,0.08);
+            color: var(--text-muted);
+            border: none;
+            width: 2.25rem; height: 2.25rem;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .close-modal:hover { color: white; background: rgba(255,255,255,0.15); }
+
+        .modal-header h2 { font-size: 1.65rem; font-weight: 900; color: var(--accent-blue); margin-bottom: 0.5rem; padding-right: 3rem; letter-spacing: -0.02em; }
+        .modal-meta { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem; align-items: center; }
+        .modal-meta-badge {
+            background: rgba(56,189,248,0.1);
+            color: var(--accent-blue);
+            border: 1px solid rgba(56,189,248,0.2);
+            padding: 0.25rem 0.65rem;
+            border-radius: 0.4rem;
+            font-weight: 600;
+            font-size: 0.82rem;
+        }
+
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--accent-indigo);
+            margin: 1.75rem 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.6rem;
+            letter-spacing: -0.01em;
+        }
+
+        /* Syllabus timeline */
+        .syllabus-timeline { display: flex; flex-direction: column; gap: 0.85rem; }
+        .syllabus-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-left: 4px solid var(--accent-blue);
+            transition: border-color 0.2s;
+        }
+        .syllabus-card:hover { border-left-color: var(--accent-indigo); }
+        .week-tag { font-size: 0.75rem; font-weight: 700; color: var(--accent-blue); text-transform: uppercase; letter-spacing: 0.06em; }
+        .syllabus-card h4 { font-size: 0.95rem; font-weight: 700; margin: 0.25rem 0 0.4rem; }
+        .syllabus-card p { font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; }
+
+        /* Books grid */
+        .books-header-wrapper {
+            display: flex; align-items: center; gap: 1.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .modal-book-clipart { width: 90px; height: 90px; object-fit: cover; border-radius: 0.75rem; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 8px 20px rgba(251,191,36,0.2); }
+        .books-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .book-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 0.75rem;
+            padding: 1.1rem;
+            display: flex; flex-direction: column; justify-content: space-between;
+            transition: all 0.2s;
+        }
+        .book-card:hover { border-color: rgba(251,191,36,0.35); transform: translateY(-2px); }
+        .book-card h4 { font-size: 0.95rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 0.2rem; }
+        .book-card .author { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0.5rem; }
+        .book-card p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.75rem; }
+        .book-link-btn {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            background: rgba(251,191,36,0.12);
+            color: var(--accent-amber);
+            border: 1px solid rgba(251,191,36,0.25);
+            text-decoration: none;
+            padding: 0.38rem 0.75rem;
+            border-radius: 0.4rem;
+            font-size: 0.8rem; font-weight: 700;
+            width: fit-content;
+            transition: all 0.2s;
+        }
+        .book-link-btn:hover { background: rgba(251,191,36,0.25); color: white; }
+
+        /* ── RADAR CHART PANEL ── */
+        .chart-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            margin-bottom: 1.75rem;
+        }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; }
+        @media (max-width: 768px) { .chart-grid { grid-template-columns: 1fr; } }
+        .chart-box { position: relative; height: 260px; display: flex; align-items: center; justify-content: center; }
+
+        /* ── COMPARE PANEL ── */
+        .compare-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(11,21,48,0.96);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid var(--card-border-active);
+            padding: 1rem 2.5rem;
+            display: none;
+            align-items: center;
+            gap: 1.5rem;
+            z-index: 800;
+            animation: slideUpCompare 0.3s ease;
+        }
+        @keyframes slideUpCompare { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .compare-bar.visible { display: flex; }
+        .compare-slots { display: flex; gap: 1rem; flex: 1; }
+        .compare-slot {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px dashed var(--card-border-active);
+            border-radius: 0.65rem;
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .compare-slot.filled { border-style: solid; color: var(--text-main); }
+
+        /* ── SAVED COURSES TAB ── */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+        .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+
+        /* ── TRENDING SECTION ── */
+        .trending-scroll {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.75rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--card-border) transparent;
+        }
+        .trending-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            min-width: 240px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .trending-card:hover { border-color: var(--card-border-active); transform: translateY(-3px); }
+        .trending-rank { font-size: 1.8rem; font-weight: 900; color: var(--accent-blue); opacity: 0.3; }
+        .trending-name { font-size: 0.9rem; font-weight: 700; margin: 0.25rem 0; }
+        .trending-by { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .trending-badge { font-size: 0.72rem; font-weight: 700; color: var(--accent-rose); background: rgba(251,113,133,0.12); border: 1px solid rgba(251,113,133,0.2); padding: 0.15rem 0.5rem; border-radius: 0.4rem; }
+
+        /* ── METRICS TABLE ── */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; }
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            text-align: center;
+        }
+        .metric-model { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.35rem; }
+        .metric-score { font-size: 1.5rem; font-weight: 900; color: var(--accent-emerald); }
+        .metric-label { font-size: 0.72rem; color: var(--text-muted); }
+
+        /* ── TOAST ── */
+        .toast-notification {
+            position: fixed;
+            top: 1.5rem; right: 1.5rem;
+            background: var(--bg-secondary);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border-active);
+            color: var(--text-main);
+            padding: 0.9rem 1.5rem;
+            border-radius: 0.875rem;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 2000;
+            font-size: 0.9rem;
+            font-weight: 500;
+            animation: toastIn 0.3s ease;
+            max-width: 380px;
+        }
+        @keyframes toastIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+
+        /* ── CHATBOT (PINNED TO TOP) ── */
+        .chatbot-trigger {
+            position: fixed;
+            top: 4.75rem; right: 2rem;
+            background: linear-gradient(135deg, #0284c7, #6366f1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 0.75rem 1.4rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 0.92rem;
+            cursor: pointer;
+            box-shadow: 0 8px 28px rgba(2,132,199,0.5), 0 0 15px rgba(99,102,241,0.35);
+            display: flex; align-items: center; gap: 0.6rem;
+            z-index: 901;
+            transition: all 0.3s ease;
+        }
+        .chatbot-trigger:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 14px 36px rgba(99,102,241,0.65); }
+
+        .chat-window {
+            position: fixed;
+            top: 4.5rem; right: 2rem;
+            width: 420px; height: 580px;
+            max-height: calc(100vh - 5.5rem);
+            background: rgba(11,21,48,0.98);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.75), 0 0 30px rgba(56,189,248,0.2);
+            display: none; flex-direction: column;
+            z-index: 950;
+            overflow: hidden;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown { from { transform: translateY(-20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+        .chat-header {
+            background: rgba(16,28,58,0.95);
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--card-border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .chat-header h3 { font-size: 0.95rem; font-weight: 700; color: var(--accent-blue); display: flex; align-items: center; gap: 0.5rem; }
+        .online-dot { width: 8px; height: 8px; background: var(--accent-emerald); border-radius: 50%; box-shadow: 0 0 6px var(--accent-emerald); animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        .chat-stream { flex:1; padding:1rem; overflow-y:auto; display:flex; flex-direction:column; gap:0.85rem; }
+        .msg-bubble { max-width: 85%; padding: 0.75rem 1rem; border-radius: 1rem; font-size: 0.87rem; line-height: 1.5; }
+        .msg-user { align-self: flex-end; background: linear-gradient(135deg,#0284c7,#4f46e5); color:white; border-bottom-right-radius: 0.25rem; }
+        .msg-ai { align-self: flex-start; background: rgba(30,41,59,0.85); border: 1px solid var(--card-border); color: var(--text-main); border-bottom-left-radius: 0.25rem; }
+
+        .prompt-chips { display:flex; flex-wrap:wrap; gap:0.35rem; padding:0.5rem 1rem; background:rgba(6,13,31,0.5); border-top:1px solid var(--card-border); }
+        .chip { background: rgba(56,189,248,0.1); color:var(--accent-blue); border:1px solid rgba(56,189,248,0.2); font-size:0.72rem; padding:0.22rem 0.55rem; border-radius:1rem; cursor:pointer; white-space:nowrap; transition:all 0.2s; }
+        .chip:hover { background: rgba(56,189,248,0.22); }
+
+        .chat-input-wrapper { display:flex; padding:0.75rem 1rem; background:rgba(11,21,48,0.95); border-top:1px solid var(--card-border); gap:0.5rem; }
+        .chat-input { flex:1; background:rgba(30,41,59,0.8); border:1px solid var(--card-border); color:white; padding:0.6rem 0.85rem; border-radius:0.5rem; outline:none; font-size:0.87rem; }
+        .chat-input:focus { border-color: var(--accent-blue); }
+
+        /* ── EXPORT PROGRESS BAR ── */
+        .progress-bar-wrapper { margin-top: 0.75rem; }
+        .progress-bar-track { background: var(--card-border); border-radius: 1rem; height: 6px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-indigo)); border-radius: 1rem; transition: width 0.4s ease; }
+
+        /* ── ANIMATE NUMBERS ── */
+        @keyframes countUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        .stat-card .value { animation: countUp 0.5s ease backwards; }
+        .stat-card:nth-child(1) .value { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) .value { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) .value { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) .value { animation-delay: 0.4s; }
+        .stat-card:nth-child(5) .value { animation-delay: 0.5s; }
+
+        /* ══════════════════════════════════════
+           CRAZY ANIMATIONS LAYER
+        ══════════════════════════════════════ */
+
+        /* Particle canvas behind everything */
+        #anim-canvas {
+            position: fixed; inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Ensure container stays above background canvas */
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+        .navbar { z-index: 500; }
+        .chatbot-trigger { position: fixed; z-index: 901; }
+        #chat-window { position: fixed; z-index: 950; }
+        .compare-bar { position: fixed; z-index: 800; }
+        .modal-overlay { position: fixed; z-index: 1000; }
+
+        /* ── Cursor glow ── */
+        #cursor-glow {
+            position: fixed;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(56,189,248,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* ── Nav brand glow pulse ── */
+        @keyframes brandPulse {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(56,189,248,0.5)); }
+            50%       { filter: drop-shadow(0 0 18px rgba(129,140,248,0.8)); }
+        }
+        .nav-brand { animation: brandPulse 3s ease-in-out infinite; }
+
+        /* ── Hero h1 shimmer sweep ── */
+        @keyframes shimmerSweep {
+            0%   { background-position: -200% center; }
+            100% { background-position:  200% center; }
+        }
+        .hero-content h1 {
+            background-size: 200% auto;
+            background-image: linear-gradient(90deg,
+                var(--accent-blue) 0%,
+                var(--accent-indigo) 25%,
+                #fff 40%,
+                var(--accent-violet) 55%,
+                var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmerSweep 4s linear infinite;
+        }
+
+        /* ── Hero banner floating orbs ── */
+        .hero-banner { overflow: hidden; }
+        .hero-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            pointer-events: none;
+            animation: floatOrb var(--dur, 8s) ease-in-out infinite;
+        }
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33%  { transform: translate(15px, -20px) scale(1.05); }
+            66%  { transform: translate(-10px, 15px) scale(0.95); }
+        }
+
+        /* ── Stat card 3D tilt ── */
+        .stat-card {
+            transform-style: preserve-3d;
+            transform: perspective(600px);
+            transition: transform 0.15s ease, border-color 0.25s, box-shadow 0.25s;
+            will-change: transform;
+        }
+        /* Cancel old translateY hover since JS handles it */
+        .stat-card:hover { transform: none; }
+
+        /* ── Stat card icon spin on hover ── */
+        .stat-card:hover .icon {
+            display: inline-block;
+            animation: iconSpin 0.5s cubic-bezier(0.34,1.56,0.64,1) 1;
+        }
+        @keyframes iconSpin {
+            0%   { transform: rotate(0deg) scale(1); }
+            50%  { transform: rotate(-20deg) scale(1.3); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        /* ── Course card magnetic lift ── */
+        .course-card {
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.12s;
+        }
+        .course-card:hover {
+            border-color: var(--card-border-active);
+            box-shadow:
+                0 12px 40px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(56,189,248,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        /* ── Neon left border glow on card hover ── */
+        .course-card:hover::before {
+            opacity: 1;
+            box-shadow: 0 0 12px var(--accent-blue), 0 0 24px var(--accent-indigo);
+        }
+
+        /* ── Button ripple ── */
+        .btn { overflow: hidden; }
+        .ripple-wave {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.35);
+            transform: scale(0);
+            animation: rippleAnim 0.55s linear;
+            pointer-events: none;
+        }
+        @keyframes rippleAnim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* ── Tab button active glow ── */
+        .tab-btn.active {
+            box-shadow: 0 4px 12px rgba(2,132,199,0.35), 0 0 20px rgba(56,189,248,0.2);
+            animation: tabGlow 2s ease-in-out infinite;
+        }
+        @keyframes tabGlow {
+            0%, 100% { box-shadow: 0 4px 12px rgba(2,132,199,0.35), 0 0 16px rgba(56,189,248,0.15); }
+            50%       { box-shadow: 0 4px 20px rgba(2,132,199,0.55), 0 0 30px rgba(56,189,248,0.35); }
+        }
+
+        /* ── Skill badge shimmer wave ── */
+        @keyframes badgeShimmer {
+            0%   { background-position: -100% 0; }
+            100% { background-position:  200% 0; }
+        }
+        .skill-badge {
+            background-size: 200% 100%;
+            background-image: linear-gradient(90deg,
+                rgba(56,189,248,0.12) 0%,
+                rgba(56,189,248,0.28) 50%,
+                rgba(56,189,248,0.12) 100%);
+            animation: badgeShimmer 2.5s linear infinite;
+        }
+
+        /* ── Panel scan line ── */
+        .control-panel, .results-panel {
+            position: relative;
+            overflow: hidden;
+        }
+        .control-panel::after, .results-panel::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 40%; height: 100%;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(56,189,248,0.04) 50%,
+                transparent 100%);
+            animation: panelScan 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes panelScan {
+            0%   { left: -40%; }
+            100% { left: 140%; }
+        }
+
+        /* ── Hero image float ── */
+        .hero-clipart-img {
+            animation: heroFloat 5s ease-in-out infinite;
+        }
+        @keyframes heroFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50%       { transform: translateY(-10px) rotate(-0.8deg); }
+        }
+
+        /* ── Score badge pulse ── */
+        @keyframes scorePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
+            50%       { box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+        }
+        .score-badge { animation: scorePulse 2.5s ease-in-out infinite; }
+
+        /* ── Chatbot trigger heartbeat ── */
+        @keyframes chatHeartbeat {
+            0%, 90%, 100% { transform: scale(1); }
+            92%  { transform: scale(1.05); }
+            96%  { transform: scale(0.97); }
+            98%  { transform: scale(1.03); }
+        }
+        .chatbot-trigger { animation: chatHeartbeat 4s ease-in-out infinite; }
+        .chatbot-trigger:hover { animation: none; transform: translateY(-4px) scale(1.04); }
+
+        /* ── Navbar border shimmer ── */
+        @keyframes navBorderShimmer {
+            0%   { border-bottom-color: rgba(99,165,255,0.12); }
+            50%  { border-bottom-color: rgba(56,189,248,0.4); }
+            100% { border-bottom-color: rgba(99,165,255,0.12); }
+        }
+        .navbar { animation: navBorderShimmer 4s ease-in-out infinite; }
+
+        /* ── Toast pop ── */
+        @keyframes toastBounce {
+            0%   { transform: translateX(-50%) translateY(20px) scale(0.9); opacity:0; }
+            60%  { transform: translateX(-50%) translateY(-4px) scale(1.02); opacity:1; }
+            100% { transform: translateX(-50%) translateY(0)   scale(1);    opacity:1; }
+        }
+        .toast-notification.show { animation: toastBounce 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+        /* ── Entrance fade-up for stat cards ── */
+        @keyframes fadeUpIn {
+            from { opacity:0; transform: translateY(24px); }
+            to   { opacity:1; transform: translateY(0); }
+        }
+        .stat-card {
+            opacity: 0;
+            animation: fadeUpIn 0.5s ease forwards;
+        }
+        .stat-card:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card:nth-child(2) { animation-delay: 0.15s; }
+        .stat-card:nth-child(3) { animation-delay: 0.25s; }
+        .stat-card:nth-child(4) { animation-delay: 0.35s; }
+        .stat-card:nth-child(5) { animation-delay: 0.45s; }
+
+        /* ── Course card entrance ── */
+        @keyframes cardSlideIn {
+            from { opacity:0; transform: translateX(-18px); }
+            to   { opacity:1; transform: translateX(0); }
+        }
+        .course-card.anim-in {
+            animation: cardSlideIn 0.4s cubic-bezier(0.25,0.46,0.45,0.94) both;
+        }
+
+        /* ── Compare bar slide up ── */
+        @keyframes compareSlideUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+        .compare-bar.visible { animation: compareSlideUp 0.35s cubic-bezier(0.34,1.2,0.64,1); }
+
+        /* ── Run pipeline button spinning rocket ── */
+        @keyframes rocketShake {
+            0%,100% { transform: rotate(0deg); }
+            25% { transform: rotate(-8deg) scale(1.2); }
+            75% { transform: rotate(8deg)  scale(1.2); }
+        }
+        #run-pipeline-btn.running #btn-icon { display:inline-block; animation: rocketShake 0.4s linear infinite; }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+<!-- ANIMATION LAYER -->
+<canvas id="anim-canvas"></canvas>
+<div id="cursor-glow"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="nav-brand">⚡ CourseAI</div>
+    <div class="nav-links">
+        <span class="nav-link" onclick="switchTab('recommend')">🏠 Recommend</span>
+        <span class="nav-link" onclick="switchTab('saved')">🔖 Saved <span id="saved-count" class="saved-count-badge">0</span></span>
+        <span class="nav-link" onclick="switchTab('insights')">📊 Insights</span>
+        <span class="nav-link" onclick="switchTab('trending')">🔥 Trending</span>
+        <a href="/presentation" target="_blank" class="nav-link" style="text-decoration:none;">🖥️ Slides</a>
+    </div>
+    <div class="nav-actions">
+        <button class="btn btn-sm" onclick="toggleChat()" style="display:inline-flex; align-items:center; gap:0.4rem; background:linear-gradient(135deg,#0284c7,#6366f1); border-radius:2rem; font-weight:700; box-shadow:0 0 14px rgba(99,102,241,0.4); border:1px solid rgba(255,255,255,0.2);">🤖 AI Study Assistant</button>
+        <button class="btn btn-sm btn-outline" onclick="exportToCSV()">⬇️ Export</button>
+        <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    </div>
+</nav>
+
+<!-- TOAST -->
+<div id="toast" class="toast-notification">
+    <span id="toast-icon">ℹ️</span>
+    <span id="toast-message">Notification</span>
+</div>
+
+<div class="container">
+
+    <!-- HERO -->
+    <div class="hero-banner">
+        <div class="hero-content">
+            <h1>AI-Powered Learning Intelligence</h1>
+            <p>Discover your perfect courses using LightGCN Graph Neural Networks, Neural Collaborative Filtering, Content-Based Similarity & 5 more intelligent models. Personalized for your dream career.</p>
+            <div class="hero-actions">
+                <button id="run-pipeline-btn" class="btn" onclick="triggerPipelineRun()">
+                    <span id="btn-icon">🚀</span> <span id="btn-text">Train All 8 Models</span>
+                </button>
+                <button class="btn btn-outline" onclick="fetchRecommendations()">
+                    🎯 Get My Recommendations
+                </button>
+            </div>
+        </div>
+        <div>
+            <img src="/static/thumbnail.png?v=99" alt="Course Recommendation Thumbnail" class="hero-clipart-img">
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="icon">📚</div>
+            <div class="label">Total Courses</div>
+            <div class="value" id="stat-courses">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">👥</div>
+            <div class="label">Active Learners</div>
+            <div class="value" id="stat-users">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">💼</div>
+            <div class="label">Job Roles Tracked</div>
+            <div class="value" id="stat-jobs">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">🎯</div>
+            <div class="label">Hybrid Precision@10</div>
+            <div class="value" id="stat-precision" style="color: var(--accent-emerald);">0.85</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">🔖</div>
+            <div class="label">Courses Saved</div>
+            <div class="value" id="stat-saved">0</div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-row">
+        <button class="tab-btn active" id="tab-recommend" onclick="switchTab('recommend')">🎯 Recommend</button>
+        <button class="tab-btn" id="tab-saved" onclick="switchTab('saved')">🔖 Saved Courses</button>
+        <button class="tab-btn" id="tab-insights" onclick="switchTab('insights')">📊 Skill Insights</button>
+        <button class="tab-btn" id="tab-trending" onclick="switchTab('trending')">🔥 Trending</button>
+        <button class="tab-btn" id="tab-metrics" onclick="switchTab('metrics')">🧠 Model Metrics</button>
+    </div>
+
+    <!-- TAB: RECOMMEND -->
+    <div class="tab-panel active" id="panel-recommend">
+        <div class="main-grid">
+            <!-- Sidebar Controls -->
+            <div class="control-panel">
+                <div class="panel-title">🎯 Recommendation Settings</div>
+
+                <!-- Search -->
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-input" class="search-input" placeholder="Search courses..." oninput="filterCourses()">
+                </div>
+
+                <!-- Level Filter Chips -->
+                <div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.06em;">Filter by Level</div>
+                <div class="filter-chips">
+                    <span class="filter-chip active" data-level="all" onclick="setLevelFilter(this, 'all')">All</span>
+                    <span class="filter-chip" data-level="Beginner" onclick="setLevelFilter(this, 'Beginner')">Beginner</span>
+                    <span class="filter-chip" data-level="Intermediate" onclick="setLevelFilter(this, 'Intermediate')">Intermediate</span>
+                    <span class="filter-chip" data-level="Advanced" onclick="setLevelFilter(this, 'Advanced')">Advanced</span>
+                </div>
+
+                <hr class="divider">
+
+                <div class="form-group">
+                    <label for="user-select">Select Learner</label>
+                    <select id="user-select" class="form-select"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="job-select">Target Career Role</label>
+                    <select id="job-select" class="form-select"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="model-select">Recommendation Engine</label>
+                    <select id="model-select" class="form-select">
+                        <option value="hybrid">✨ Hybrid Ensemble (Best)</option>
+                        <option value="lightgcn">🕸️ Graph Neural Net (LightGCN)</option>
+                        <option value="ncf">🧠 Neural Collab Filtering (NCF)</option>
+                        <option value="ubcf">😊 User-Based CF (VADER)</option>
+                        <option value="content">📝 Content-Based Filtering</option>
+                        <option value="jobs">💼 Job-Skills Gap Alignment</option>
+                        <option value="item">🔗 Item-Based CF</option>
+                        <option value="implicit">⚡ Implicit Factorization</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="topk-select">Top Results</label>
+                    <select id="topk-select" class="form-select">
+                        <option value="5">Top 5</option>
+                        <option value="10" selected>Top 10</option>
+                        <option value="15">Top 15</option>
+                        <option value="20">Top 20</option>
+                    </select>
+                </div>
+
+                <button class="btn" style="width:100%; margin-top:0.75rem;" onclick="fetchRecommendations()">
+                    🎯 Get Recommendations
+                </button>
+
+                <hr class="divider">
+
+                <!-- Compare Bar -->
+                <div class="panel-title" style="margin-bottom:0.75rem;">⚖️ Compare Mode <span id="compare-count-badge" style="display:inline-block;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.3);color:var(--accent-blue);font-size:0.7rem;font-weight:700;padding:1px 8px;border-radius:12px;margin-left:4px;">0/2</span></div>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">Click the ⚖️ icon on any two courses to compare them side by side.</p>
+                <button class="btn btn-outline btn-sm" style="width:100%; transition: all 0.2s;" onclick="sidebarCompareClick()" id="compare-btn">
+                    Open Comparison
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div class="results-panel">
+                <div class="results-header">
+                    <div>
+                        <h2>🏆 Top Recommended Courses</h2>
+                        <div id="result-user-badge" style="color:var(--text-muted); font-size:0.82rem; margin-top:0.25rem;">Select settings and click Get Recommendations</div>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <div class="view-toggle">
+                            <button class="view-btn-toggle active" id="view-list-btn" onclick="setView('list')" title="List view">☰</button>
+                            <button class="view-btn-toggle" id="view-grid-btn" onclick="setView('grid')" title="Grid view">⊞</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loading" class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Computing personalized recommendations...</p>
+                </div>
+
+                <div id="course-list" class="course-list-view">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: SAVED -->
+    <div class="tab-panel" id="panel-saved">
+        <div class="results-panel">
+            <div class="results-header">
+                <h2>🔖 Saved & Enrolled Courses</h2>
+                <button class="btn btn-outline btn-sm" onclick="clearAllSaved()">Clear All</button>
+            </div>
+            <div id="saved-list"></div>
+        </div>
+    </div>
+
+    <!-- TAB: INSIGHTS -->
+    <div class="tab-panel" id="panel-insights">
+        <div class="chart-panel">
+            <div class="results-header">
+                <h2>📊 Your Skill Gap Analysis</h2>
+                <select id="insight-job-select" class="form-select" style="width:220px;" onchange="updateSkillChart()">
+                    <!-- populated -->
+                </select>
+            </div>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:1.5rem;">Radar chart comparing your current skill level (estimated from enrolled courses) vs. requirements for your target job role.</p>
+            <div class="chart-grid">
+                <div>
+                    <div style="font-weight:700; margin-bottom:0.75rem; color:var(--accent-blue);">🕸️ Skill Radar — Current vs Target</div>
+                    <div class="chart-box"><canvas id="skillRadarChart"></canvas></div>
+                </div>
+                <div>
+                    <div style="font-weight:700; margin-bottom:0.75rem; color:var(--accent-violet);">📈 Recommendation Score by Model</div>
+                    <div class="chart-box"><canvas id="modelBarChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-panel">
+            <div style="font-weight:700; margin-bottom:1rem; color:var(--accent-amber);">📚 Your Learning Progress</div>
+            <div id="progress-summary" style="color:var(--text-muted); font-size:0.88rem;">Complete courses to track your progress here.</div>
+            <div class="progress-bar-wrapper">
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:0.4rem;">
+                    <span>Overall Completion</span>
+                    <span id="progress-pct">0%</span>
+                </div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: TRENDING -->
+    <div class="tab-panel" id="panel-trending">
+        <div class="results-panel">
+            <div class="results-header">
+                <h2>🔥 Trending Courses This Week</h2>
+                <span style="font-size:0.82rem; color:var(--text-muted);">Based on enrollment spikes & rating velocity</span>
+            </div>
+            <div id="trending-list" class="trending-scroll">
+                <!-- Populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: METRICS -->
+    <div class="tab-panel" id="panel-metrics">
+        <div class="results-panel">
+            <div class="results-header">
+                <h2>🧠 Model Performance Dashboard</h2>
+                <span style="font-size:0.82rem; color:var(--text-muted);">Precision@10 on held-out test set</span>
+            </div>
+            <div id="metrics-grid" class="metrics-grid">
+                <!-- Populated -->
+            </div>
+            <div class="chart-panel" style="margin-top:1.5rem;">
+                <div style="font-weight:700; margin-bottom:0.75rem; color:var(--accent-blue);">📊 Model Comparison Chart</div>
+                <div style="height:280px;"><canvas id="metricsBarChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<!-- COURSE DETAIL MODAL -->
+<div id="course-modal" class="modal-overlay">
+    <div class="modal-container">
+        <button class="close-modal" onclick="closeModal()">✕</button>
+        <div class="modal-header">
+            <h2 id="modal-course-title">Course Title</h2>
+            <div class="modal-meta">
+                <span id="modal-institution" class="modal-meta-badge">🏫 Institution</span>
+                <span id="modal-level" class="modal-meta-badge">🎯 Level</span>
+                <span id="modal-duration" class="modal-meta-badge">⏱️ Duration</span>
+                <span id="modal-rating" class="modal-meta-badge">⭐ Rating</span>
+            </div>
+        </div>
+        <p id="modal-description" style="color:var(--text-muted); font-size:0.93rem; line-height:1.65; margin-bottom:1.5rem;"></p>
+
+        <!-- Quick Action Buttons -->
+        <div style="display:flex; gap:0.75rem; margin-bottom:1rem; flex-wrap:wrap;">
+            <button class="btn btn-sm" id="modal-enroll-btn" onclick="enrollCurrentCourse()">📥 Mark as Enrolled</button>
+            <button class="btn btn-sm btn-outline" id="modal-complete-btn" onclick="completeCurrentCourse()">✅ Mark as Completed</button>
+            <button class="btn btn-sm btn-outline" id="modal-save-btn" onclick="saveCurrentCourse()">🔖 Save Course</button>
+        </div>
+
+        <div class="section-title">📚 Week-by-Week Syllabus</div>
+        <div id="modal-syllabus" class="syllabus-timeline"></div>
+
+        <div class="section-title">📖 Recommended Textbooks & References</div>
+        <div class="books-header-wrapper">
+            <img src="/static/book_clipart.jpg" alt="Books" class="modal-book-clipart">
+            <div>
+                <h3 style="font-size:1rem; color:var(--accent-amber); margin-bottom:0.25rem;">Curated Reference Literature</h3>
+                <p style="font-size:0.85rem; color:var(--text-muted);">Hand-picked textbooks aligned with this course syllabus. Click links to purchase or preview.</p>
+            </div>
+        </div>
+        <div id="modal-books" class="books-grid"></div>
+    </div>
+</div>
+
+<!-- COMPARE MODAL -->
+<div id="compare-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width:1100px;">
+        <button class="close-modal" onclick="closeCompareModal()">✕</button>
+        <h2 style="font-size:1.4rem; font-weight:900; margin-bottom:1.5rem; color:var(--accent-violet);">⚖️ Course Comparison</h2>
+        <div id="compare-content" style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+            <!-- Populated -->
+        </div>
+        <button class="btn btn-outline btn-sm" style="margin-top:1.5rem;" onclick="clearCompare()">Clear Comparison</button>
+    </div>
+</div>
+
+<!-- FLOATING CHATBOT -->
+<button class="chatbot-trigger" onclick="toggleChat()">🤖 <span>AI Study Assistant</span></button>
+
+<div id="chat-window" class="chat-window">
+    <div class="chat-header">
+        <h3><span class="online-dot"></span> 🤖 AI Study Tutor</h3>
+        <button onclick="toggleChat()" style="background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;">✕</button>
+    </div>
+    <div id="chat-stream" class="chat-stream">
+        <div class="msg-bubble msg-ai">👋 Hello! I'm your AI Study Assistant. Ask me about course prerequisites, syllabi, or learning pathways for any skill!</div>
+    </div>
+    <div class="prompt-chips">
+        <span class="chip" onclick="sendPrompt('What prerequisites do I need for Generative AI?')">Generative AI Prerequisites</span>
+        <span class="chip" onclick="sendPrompt('Best courses for becoming a Data Engineer?')">Data Engineer Path</span>
+        <span class="chip" onclick="sendPrompt('Explain the syllabus for Deep Learning')">Deep Learning Syllabus</span>
+        <span class="chip" onclick="sendPrompt('What skills does a Machine Learning Engineer need?')">ML Engineer Skills</span>
+    </div>
+    <div class="chat-input-wrapper">
+        <input type="text" id="chat-input" class="chat-input" placeholder="Ask about syllabi, prerequisites, topics..." onkeypress="handleChatKey(event)">
+        <button class="btn btn-sm" onclick="sendChatMessage()">Send</button>
+    </div>
+</div>
+
+<!-- COMPARE BAR -->
+<div class="compare-bar" id="compare-bar">
+    <span style="font-weight:700; white-space:nowrap;">⚖️ Compare:</span>
+    <div class="compare-slots">
+        <div class="compare-slot" id="compare-slot-0">Select a course...</div>
+        <div class="compare-slot" id="compare-slot-1">Select a course...</div>
+    </div>
+    <button class="btn btn-sm" onclick="openCompareModal()" id="compare-open-btn" disabled>Compare Now</button>
+    <button class="btn btn-sm btn-outline" onclick="clearCompare()">Clear</button>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────
+   GLOBALS
+───────────────────────────────────────────── */
+let currentRecommendations = [];
+let savedCourses = JSON.parse(localStorage.getItem('courseai_saved') || '{}');
+let progressData = JSON.parse(localStorage.getItem('courseai_progress') || '{}');
+let currentView = 'list';
+let levelFilter = 'all';
+let compareSet = [];
+let currentModalIndex = -1;
+let radarChart = null;
+let modelBarChart = null;
+let metricsBarChart = null;
+
+const MODEL_METRICS = {
+    'Hybrid':     0.8520,
+    'LightGCN':   0.8105,
+    'NCF':        0.7892,
+    'User-Based': 0.7645,
+    'Content':    0.7410,
+    'Job-Skills': 0.7810,
+    'Item-Based': 0.7320,
+    'Implicit':   0.7560
+};
+
+const TRENDING_DATA = [
+    { rank:1, name:'Machine Learning Specialization', by:'DeepLearning.AI', badge:'🔥 Viral', rating:4.9 },
+    { rank:2, name:'Generative AI with LLMs', by:'Coursera / Google', badge:'⚡ New', rating:4.8 },
+    { rank:3, name:'Data Science Professional Certificate', by:'IBM', badge:'📈 Rising', rating:4.7 },
+    { rank:4, name:'Deep Learning Specialization', by:'DeepLearning.AI', badge:'🏆 Classic', rating:4.9 },
+    { rank:5, name:'TensorFlow Developer Certificate', by:'Google', badge:'🔥 Hot', rating:4.8 },
+    { rank:6, name:'AWS Machine Learning Specialty', by:'Amazon', badge:'📈 Rising', rating:4.6 },
+    { rank:7, name:'Python for Data Science and AI', by:'IBM', badge:'👍 Popular', rating:4.6 },
+    { rank:8, name:'Applied AI with DeepLearning', by:'IBM', badge:'⚡ New', rating:4.5 },
+    { rank:9, name:'Natural Language Processing', by:'Coursera / deeplearning.ai', badge:'🔥 Hot', rating:4.7 },
+    { rank:10, name:'MLOps Specialization', by:'DeepLearning.AI', badge:'📈 Rising', rating:4.6 },
+];
+
+/* ─────────────────────────────────────────────
+   THEME
+───────────────────────────────────────────── */
+function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-btn').innerText = isDark ? '☀️' : '🌙';
+    localStorage.setItem('courseai_theme', isDark ? 'light' : 'dark');
+}
+(function initTheme() {
+    const saved = localStorage.getItem('courseai_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    const btn = document.getElementById('theme-btn');
+    if (btn) btn.innerText = saved === 'dark' ? '🌙' : '☀️';
+})();
+
+/* ─────────────────────────────────────────────
+   TOAST
+───────────────────────────────────────────── */
+function showToast(message, icon='ℹ️', duration=4000) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-icon').innerText = icon;
+    document.getElementById('toast-message').innerText = message;
+    toast.style.display = 'flex';
+    setTimeout(() => { toast.style.display = 'none'; }, duration);
+}
+
+/* ─────────────────────────────────────────────
+   TABS
+───────────────────────────────────────────── */
+function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+
+    if (name === 'saved') renderSavedCourses();
+    if (name === 'insights') renderInsights();
+    if (name === 'trending') renderTrending();
+    if (name === 'metrics') renderMetrics();
+}
+
+/* ─────────────────────────────────────────────
+   VIEW TOGGLE
+───────────────────────────────────────────── */
+function setView(v) {
+    currentView = v;
+    document.getElementById('view-list-btn').classList.toggle('active', v === 'list');
+    document.getElementById('view-grid-btn').classList.toggle('active', v === 'grid');
+    renderCourseList(currentRecommendations);
+}
+
+/* ─────────────────────────────────────────────
+   LEVEL FILTER
+───────────────────────────────────────────── */
+function setLevelFilter(el, level) {
+    levelFilter = level;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    filterCourses();
+}
+
+function filterCourses() {
+    const query = document.getElementById('search-input').value.toLowerCase();
+    const filtered = currentRecommendations.filter(c => {
+        const matchLevel = levelFilter === 'all' || c.level === levelFilter;
+        const matchSearch = !query || c.course_name.toLowerCase().includes(query) || c.skills.toLowerCase().includes(query) || c.description.toLowerCase().includes(query);
+        return matchLevel && matchSearch;
+    });
+    renderCourseList(filtered);
+}
+
+/* ─────────────────────────────────────────────
+   INIT STATS
+───────────────────────────────────────────── */
+async function initStats() {
+    try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        animateCount('stat-courses', data.total_courses || 250);
+        animateCount('stat-users', data.total_users || 150);
+        animateCount('stat-jobs', data.total_jobs || 60);
+
+        const userSelect = document.getElementById('user-select');
+        userSelect.innerHTML = '';
+        (data.users || ['user_001','user_002']).forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = opt.innerText = u;
+            userSelect.appendChild(opt);
+        });
+
+        const jobSelects = [document.getElementById('job-select'), document.getElementById('insight-job-select')];
+        jobSelects.forEach(sel => {
+            if (!sel) return;
+            sel.innerHTML = '';
+            (data.jobs || ['AI / LLM Research Engineer','Senior Data Scientist']).forEach(j => {
+                const opt = document.createElement('option');
+                opt.value = opt.innerText = j;
+                sel.appendChild(opt);
+            });
+        });
+    } catch(err) { console.error('Stats error:', err); }
+}
+
+function animateCount(id, target) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let start = 0;
+    const step = Math.ceil(target / 40);
+    const timer = setInterval(() => {
+        start = Math.min(start + step, target);
+        el.innerText = start;
+        if (start >= target) clearInterval(timer);
+    }, 25);
+}
+
+/* ─────────────────────────────────────────────
+   FETCH RECOMMENDATIONS
+───────────────────────────────────────────── */
+async function fetchRecommendations() {
+    const user = document.getElementById('user-select').value;
+    const job = document.getElementById('job-select').value;
+    const model = document.getElementById('model-select').value;
+    const topk = document.getElementById('topk-select').value;
+
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('course-list').innerHTML = '';
+    document.getElementById('result-user-badge').innerText = `👤 ${user}  |  💼 ${job}  |  🧠 ${model}`;
+
+    switchTab('recommend');
+
+    try {
+        const res = await fetch(`/api/recommend?user=${encodeURIComponent(user)}&job=${encodeURIComponent(job)}&model=${encodeURIComponent(model)}`);
+        const data = await res.json();
+        document.getElementById('loading').style.display = 'none';
+
+        if (data.recommendations && data.recommendations.length > 0) {
+            currentRecommendations = data.recommendations.slice(0, parseInt(topk));
+            renderCourseList(currentRecommendations);
+        } else if (data.error) {
+            document.getElementById('course-list').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>${data.error}</p></div>`;
+        } else {
+            document.getElementById('course-list').innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>No recommendations found. Click "Train All 8 Models" first.</p></div>';
+        }
+    } catch(err) {
+        document.getElementById('loading').style.display = 'none';
+        console.error(err);
+        showToast('Error fetching recommendations.', '❌');
+    }
+}
+
+/* ─────────────────────────────────────────────
+   RENDER COURSE LIST
+───────────────────────────────────────────── */
+function renderCourseList(courses) {
+    const container = document.getElementById('course-list');
+    container.className = currentView === 'list' ? 'course-list-view' : 'course-grid-view';
+    container.innerHTML = '';
+
+    if (!courses || courses.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>No courses match your search. Try adjusting filters.</p></div>';
+        return;
+    }
+
+    courses.forEach((item, index) => {
+        const isBookmarked = !!savedCourses[item.course_name];
+        const progress = progressData[item.course_name] || 'none';
+        const inCompare = compareSet.some(c => c.course_name === item.course_name);
+
+        if (currentView === 'list') {
+            const card = document.createElement('div');
+            card.className = 'course-card' + (isBookmarked ? ' bookmarked' : '') + (inCompare ? ' in-compare' : '');
+            card.onclick = (e) => {
+                if (e.target.closest('.icon-btn')) return;
+                openModal(currentRecommendations.indexOf(item));
+            };
+
+            const skillsHtml = item.skills.split(',').slice(0,5).map(s => `<span class="skill-badge">${s.trim()}</span>`).join('');
+            const starRating = '★'.repeat(Math.round(item.rating || 4.5)) + '☆'.repeat(5 - Math.round(item.rating || 4.5));
+            const progressHtml = progress === 'enrolled' ? '<span class="progress-indicator progress-enrolled">📥 Enrolled</span>' :
+                                  progress === 'completed' ? '<span class="progress-indicator progress-completed">✅ Completed</span>' :
+                                  isBookmarked ? '<span class="progress-indicator progress-saved">🔖 Saved</span>' : '';
+
+            card.innerHTML = `
+                <div class="card-top">
+                    <div class="course-info">
+                        <h3>${index + 1}. ${item.course_name}</h3>
+                        <div class="course-meta">🏫 ${item.institution} · 🎯 ${item.level} · ⏱️ ${item.duration}</div>
+                        <div class="course-desc">${item.description}</div>
+                        <div class="course-skills">${skillsHtml}</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="icon-btn ${isBookmarked?'bookmarked':''}" title="Save course" onclick="toggleBookmark(event, '${item.course_name.replace(/'/g,"\\'")}', ${currentRecommendations.indexOf(item)})">🔖</button>
+                        <button class="icon-btn ${inCompare?'compared':''}" title="Add to compare" onclick="toggleCompare(event, ${currentRecommendations.indexOf(item)})">⚖️</button>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                        <span class="rating-stars" title="${item.rating}/5">${starRating} ${(item.rating||4.5).toFixed(1)}</span>
+                        ${progressHtml}
+                        <span class="view-details-btn" onclick="openModal(${currentRecommendations.indexOf(item)})">📖 View Syllabus & Books →</span>
+                    </div>
+                    <div class="score-badge">Match ${(item.score * 100).toFixed(1)}%</div>
+                </div>
+            `;
+            container.appendChild(card);
+        } else {
+            // Grid view
+            const card = document.createElement('div');
+            card.className = 'course-card-grid' + (isBookmarked ? ' bookmarked' : '');
+            card.onclick = () => openModal(currentRecommendations.indexOf(item));
+            card.innerHTML = `
+                <div class="grid-rank">#${index + 1}</div>
+                <span class="grid-score">Match ${(item.score * 100).toFixed(1)}%</span>
+                <div style="font-size:1rem; font-weight:700; margin:0.4rem 0 0.25rem;">${item.course_name}</div>
+                <div style="font-size:0.78rem; color:var(--accent-blue); margin-bottom:0.5rem;">🏫 ${item.institution} · ${item.level}</div>
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem; display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${item.description}</div>
+                <div class="course-skills">${item.skills.split(',').slice(0,3).map(s => `<span class="skill-badge">${s.trim()}</span>`).join('')}</div>
+                <div style="margin-top:0.75rem; display:flex; justify-content:space-between; align-items:center;">
+                    <span class="rating-stars">★ ${(item.rating||4.5).toFixed(1)}</span>
+                    <button class="icon-btn ${isBookmarked?'bookmarked':''}" onclick="event.stopPropagation(); toggleBookmark(event, '${item.course_name.replace(/'/g,"\\'")}', ${currentRecommendations.indexOf(item)})">🔖</button>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+    });
+}
+
+/* ─────────────────────────────────────────────
+   BOOKMARKS / PROGRESS
+───────────────────────────────────────────── */
+function toggleBookmark(e, courseName, idx) {
+    e.stopPropagation();
+    const course = currentRecommendations[idx];
+    if (!course) return;
+    if (savedCourses[courseName]) {
+        delete savedCourses[courseName];
+        showToast(`Removed "${courseName}" from saved.`, '🗑️');
+    } else {
+        savedCourses[courseName] = course;
+        showToast(`Saved "${courseName}"!`, '🔖');
+    }
+    localStorage.setItem('courseai_saved', JSON.stringify(savedCourses));
+    updateSavedCount();
+    filterCourses();
+}
+
+function updateSavedCount() {
+    const count = Object.keys(savedCourses).length;
+    document.getElementById('saved-count').innerText = count;
+    document.getElementById('stat-saved').innerText = count;
+}
+
+function clearAllSaved() {
+    savedCourses = {};
+    progressData = {};
+    localStorage.setItem('courseai_saved', JSON.stringify(savedCourses));
+    localStorage.setItem('courseai_progress', JSON.stringify(progressData));
+    updateSavedCount();
+    renderSavedCourses();
+    showToast('All saved courses cleared.', '🗑️');
+}
+
+function renderSavedCourses() {
+    const container = document.getElementById('saved-list');
+    const courses = Object.values(savedCourses);
+    if (!courses.length) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔖</div><p>No saved courses yet. Bookmark courses from the Recommend tab!</p></div>';
+        return;
+    }
+    container.className = 'course-list-view';
+    container.innerHTML = '';
+    courses.forEach((item, index) => {
+        const progress = progressData[item.course_name] || 'saved';
+        const card = document.createElement('div');
+        card.className = 'course-card bookmarked';
+        const skillsHtml = (item.skills || '').split(',').slice(0,4).map(s => `<span class="skill-badge">${s.trim()}</span>`).join('');
+        card.innerHTML = `
+            <div class="card-top">
+                <div class="course-info">
+                    <h3>${index+1}. ${item.course_name}</h3>
+                    <div class="course-meta">🏫 ${item.institution} · 🎯 ${item.level} · ⏱️ ${item.duration}</div>
+                    <div class="course-skills">${skillsHtml}</div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:flex-end;">
+                    <span class="score-badge">Match ${((item.score||0.85)*100).toFixed(1)}%</span>
+                    ${progress === 'enrolled' ? '<span class="progress-indicator progress-enrolled">📥 Enrolled</span>' : ''}
+                    ${progress === 'completed' ? '<span class="progress-indicator progress-completed">✅ Completed</span>' : ''}
+                </div>
+            </div>
+            <div class="card-footer">
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                    <button class="btn btn-sm" onclick="setProgress('${item.course_name.replace(/'/g,"\\'")}', 'enrolled'); renderSavedCourses();">📥 Enrolled</button>
+                    <button class="btn btn-sm btn-outline" onclick="setProgress('${item.course_name.replace(/'/g,"\\'")}', 'completed'); renderSavedCourses();">✅ Done</button>
+                    <button class="btn btn-sm btn-outline" style="border-color:var(--accent-rose); color:var(--accent-rose);" onclick="removeSaved('${item.course_name.replace(/'/g,"\\'")}')">🗑️ Remove</button>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+    updateProgress();
+}
+
+function setProgress(courseName, status) {
+    progressData[courseName] = status;
+    localStorage.setItem('courseai_progress', JSON.stringify(progressData));
+    showToast(`Marked "${courseName}" as ${status}.`, status === 'completed' ? '✅' : '📥');
+}
+
+function removeSaved(courseName) {
+    delete savedCourses[courseName];
+    delete progressData[courseName];
+    localStorage.setItem('courseai_saved', JSON.stringify(savedCourses));
+    localStorage.setItem('courseai_progress', JSON.stringify(progressData));
+    updateSavedCount();
+    renderSavedCourses();
+}
+
+function updateProgress() {
+    const total = Object.keys(savedCourses).length;
+    const completed = Object.values(progressData).filter(v => v === 'completed').length;
+    const pct = total ? Math.round((completed / total) * 100) : 0;
+    document.getElementById('progress-pct').innerText = `${pct}%`;
+    document.getElementById('progress-bar').style.width = `${pct}%`;
+    document.getElementById('progress-summary').innerText = `${completed} of ${total} saved courses completed (${pct}% complete).`;
+}
+
+/* MODAL actions */
+function enrollCurrentCourse() {
+    if (currentModalIndex < 0) return;
+    const course = currentRecommendations[currentModalIndex];
+    if (!course) return;
+    savedCourses[course.course_name] = course;
+    progressData[course.course_name] = 'enrolled';
+    localStorage.setItem('courseai_saved', JSON.stringify(savedCourses));
+    localStorage.setItem('courseai_progress', JSON.stringify(progressData));
+    updateSavedCount();
+    showToast(`Enrolled in "${course.course_name}"!`, '📥');
+}
+function completeCurrentCourse() {
+    if (currentModalIndex < 0) return;
+    const course = currentRecommendations[currentModalIndex];
+    if (!course) return;
+    savedCourses[course.course_name] = course;
+    progressData[course.course_name] = 'completed';
+    localStorage.setItem('courseai_saved', JSON.stringify(savedCourses));
+    localStorage.setItem('courseai_progress', JSON.stringify(progressData));
+    updateSavedCount();
+    showToast(`Marked "${course.course_name}" as completed! 🎉`, '✅');
+}
+function saveCurrentCourse() {
+    if (currentModalIndex < 0) return;
+    const course = currentRecommendations[currentModalIndex];
+    if (!course) return;
+    toggleBookmark({ stopPropagation: ()=>{} }, course.course_name, currentModalIndex);
+}
+
+/* ─────────────────────────────────────────────
+   COMPARE
+───────────────────────────────────────────── */
+function toggleCompare(e, idx) {
+    e.stopPropagation();
+    const course = currentRecommendations[idx];
+    const pos = compareSet.findIndex(c => c.course_name === course.course_name);
+    if (pos >= 0) {
+        compareSet.splice(pos, 1);
+        showToast(`Removed "${course.course_name}" from compare.`, '➖');
+    } else if (compareSet.length >= 2) {
+        showToast('You can only compare 2 courses. Remove one first.', '⚠️');
+        return;
+    } else {
+        compareSet.push(course);
+        showToast(`Added "${course.course_name}" to compare.`, '⚖️');
+    }
+    updateCompareBar();
+    filterCourses();
+}
+
+function updateCompareBar() {
+    const bar = document.getElementById('compare-bar');
+    const openBtn = document.getElementById('compare-open-btn');
+    const compareBtn = document.getElementById('compare-btn');
+    const badge = document.getElementById('compare-count-badge');
+
+    if (compareSet.length > 0) {
+        bar.classList.add('visible');
+        document.body.classList.add('compare-bar-open');
+    } else {
+        bar.classList.remove('visible');
+        document.body.classList.remove('compare-bar-open');
+    }
+    for (let i = 0; i < 2; i++) {
+        const slot = document.getElementById(`compare-slot-${i}`);
+        if (compareSet[i]) {
+            slot.innerText = compareSet[i].course_name;
+            slot.classList.add('filled');
+        } else {
+            slot.innerText = 'Select a course...';
+            slot.classList.remove('filled');
+        }
+    }
+    const ready = compareSet.length === 2;
+    openBtn.disabled = !ready;
+
+    // Update sidebar button style
+    if (compareBtn) {
+        if (ready) {
+            compareBtn.style.opacity = '1';
+            compareBtn.style.cursor = 'pointer';
+            compareBtn.style.borderColor = 'var(--accent-blue)';
+            compareBtn.style.color = 'var(--accent-blue)';
+            compareBtn.innerHTML = '⚖️ Open Comparison';
+        } else {
+            compareBtn.style.opacity = '0.7';
+            compareBtn.style.cursor = 'default';
+            compareBtn.style.borderColor = '';
+            compareBtn.style.color = '';
+            compareBtn.innerHTML = `Open Comparison`;
+        }
+    }
+    // Update badge
+    if (badge) badge.textContent = `${compareSet.length}/2`;
+}
+
+function sidebarCompareClick() {
+    if (compareSet.length === 0) {
+        showToast('Click the ⚖️ icon on any course card to add it to compare.', '💡');
+    } else if (compareSet.length === 1) {
+        showToast(`1 course selected — add one more to compare!`, '⚖️');
+    } else {
+        openCompareModal();
+    }
+}
+
+function clearCompare() {
+    compareSet = [];
+    updateCompareBar();
+    filterCourses();
+    document.getElementById('compare-modal').style.display = 'none';
+}
+
+function openCompareModal() {
+    if (compareSet.length < 2) return;
+    const [a, b] = compareSet;
+    const content = document.getElementById('compare-content');
+
+    function col(course) {
+        const skillsHtml = course.skills.split(',').map(s => `<span class="skill-badge">${s.trim()}</span>`).join('');
+        const sylHtml = (course.syllabus || []).slice(0,4).map(s => `
+            <div class="syllabus-card">
+                <div class="week-tag">${s.week || 'Module'}</div>
+                <h4>${s.title}</h4>
+                <p>${s.topics}</p>
+            </div>
+        `).join('') || '<p style="color:var(--text-muted)">Standard module content.</p>';
+        return `
+            <div>
+                <h3 style="font-size:1.1rem; font-weight:800; color:var(--accent-blue); margin-bottom:0.75rem;">${course.course_name}</h3>
+                <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem;">
+                    <div><strong>Institution:</strong> ${course.institution}</div>
+                    <div><strong>Level:</strong> ${course.level}</div>
+                    <div><strong>Duration:</strong> ${course.duration}</div>
+                    <div><strong>Rating:</strong> ⭐ ${course.rating} / 5.0</div>
+                    <div><strong>Match Score:</strong> <span class="score-badge">${(course.score*100).toFixed(1)}%</span></div>
+                </div>
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">${course.description}</div>
+                <div style="font-size:0.82rem; font-weight:700; margin-bottom:0.4rem; color:var(--accent-indigo);">Skills</div>
+                <div class="course-skills" style="margin-bottom:1rem;">${skillsHtml}</div>
+                <div style="font-size:0.82rem; font-weight:700; margin-bottom:0.5rem; color:var(--accent-indigo);">Syllabus</div>
+                <div class="syllabus-timeline">${sylHtml}</div>
+            </div>
+        `;
+    }
+
+    content.innerHTML = col(a) + col(b);
+    document.getElementById('compare-modal').style.display = 'flex';
+}
+
+function closeCompareModal() {
+    document.getElementById('compare-modal').style.display = 'none';
+}
+
+/* ─────────────────────────────────────────────
+   MODAL
+───────────────────────────────────────────── */
+function openModal(index) {
+    const course = currentRecommendations[index];
+    if (!course) return;
+    currentModalIndex = index;
+
+    document.getElementById('modal-course-title').innerText = course.course_name;
+    document.getElementById('modal-institution').innerText = `🏫 ${course.institution}`;
+    document.getElementById('modal-level').innerText = `🎯 ${course.level}`;
+    document.getElementById('modal-duration').innerText = `⏱️ ${course.duration}`;
+    document.getElementById('modal-rating').innerText = `⭐ ${course.rating} / 5.0`;
+    document.getElementById('modal-description').innerText = course.description;
+
+    // Syllabus
+    const sylContainer = document.getElementById('modal-syllabus');
+    sylContainer.innerHTML = '';
+    if (course.syllabus && course.syllabus.length > 0) {
+        course.syllabus.forEach(s => {
+            const sc = document.createElement('div');
+            sc.className = 'syllabus-card';
+            sc.innerHTML = `<div class="week-tag">${s.week || 'Module'}</div><h4>${s.title}</h4><p>${s.topics}</p>`;
+            sylContainer.appendChild(sc);
+        });
+    } else {
+        sylContainer.innerHTML = '<p style="color:var(--text-muted)">Standard 4-week module syllabus available upon enrollment.</p>';
+    }
+
+    // Books
+    const bookContainer = document.getElementById('modal-books');
+    bookContainer.innerHTML = '';
+    if (course.books && course.books.length > 0) {
+        course.books.forEach(b => {
+            const bc = document.createElement('div');
+            bc.className = 'book-card';
+            const linkUrl = b.link || `https://www.google.com/search?tbm=bks&q=${encodeURIComponent(b.title + ' ' + b.author)}`;
+            bc.innerHTML = `
+                <div>
+                    <h4>📖 ${b.title}</h4>
+                    <div class="author">By ${b.author}</div>
+                    <p>${b.desc}</p>
+                </div>
+                <a href="${linkUrl}" target="_blank" class="book-link-btn" onclick="event.stopPropagation();">🔗 View / Buy Book →</a>
+            `;
+            bookContainer.appendChild(bc);
+        });
+    } else {
+        bookContainer.innerHTML = '<p style="color:var(--text-muted)">Recommended reading materials provided in course portal.</p>';
+    }
+
+    document.getElementById('course-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('course-modal').style.display = 'none';
+    currentModalIndex = -1;
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('course-modal');
+    const compareModal = document.getElementById('compare-modal');
+    if (event.target === modal) closeModal();
+    if (event.target === compareModal) closeCompareModal();
+};
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeCompareModal(); } });
+
+/* ─────────────────────────────────────────────
+   CHATBOT
+───────────────────────────────────────────── */
+function toggleChat() {
+    const win = document.getElementById('chat-window');
+    win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+}
+function handleChatKey(e) { if (e.key === 'Enter') sendChatMessage(); }
+function sendPrompt(text) { document.getElementById('chat-input').value = text; sendChatMessage(); }
+
+async function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const prompt = input.value.trim();
+    if (!prompt) return;
+    input.value = '';
+
+    const stream = document.getElementById('chat-stream');
+    const userMsg = document.createElement('div');
+    userMsg.className = 'msg-bubble msg-user';
+    userMsg.innerText = prompt;
+    stream.appendChild(userMsg);
+
+    const typing = document.createElement('div');
+    typing.className = 'msg-bubble msg-ai';
+    typing.innerText = '🤔 Analyzing course data...';
+    stream.appendChild(typing);
+    stream.scrollTop = stream.scrollHeight;
+
+    const selectedJob = document.getElementById('job-select').value;
+
+    try {
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, job: selectedJob })
+        });
+        const data = await res.json();
+        stream.removeChild(typing);
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'msg-bubble msg-ai';
+        aiMsg.innerHTML = data.response.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        stream.appendChild(aiMsg);
+        stream.scrollTop = stream.scrollHeight;
+    } catch(err) {
+        stream.removeChild(typing);
+        console.error(err);
+    }
+}
+
+/* ─────────────────────────────────────────────
+   PIPELINE TRAINING
+───────────────────────────────────────────── */
+async function triggerPipelineRun() {
+    const btn = document.getElementById('run-pipeline-btn');
+    const icon = document.getElementById('btn-icon');
+    const text = document.getElementById('btn-text');
+
+    btn.disabled = true;
+    icon.innerText = '⏳';
+    text.innerText = 'Training 8 Models...';
+    showToast('Training all 8 ML models in background... (2-3 mins)', '⚙️', 8000);
+
+    try {
+        const res = await fetch('/api/run_pipeline', { method: 'POST' });
+        const data = await res.json();
+        btn.disabled = false;
+        icon.innerText = '🚀';
+        text.innerText = 'Train All 8 Models';
+        if (data.status === 'success') {
+            showToast('✅ Pipeline complete! All models retrained.', '🎉', 5000);
+            await initStats();
+            fetchRecommendations();
+        } else {
+            showToast(`❌ Training error: ${data.message}`, '⚠️', 5000);
+        }
+    } catch(err) {
+        btn.disabled = false;
+        icon.innerText = '🚀';
+        text.innerText = 'Train All 8 Models';
+        showToast('❌ Training request failed.', '⚠️');
+    }
+}
+
+/* ─────────────────────────────────────────────
+   EXPORT CSV
+───────────────────────────────────────────── */
+function exportToCSV() {
+    const courses = currentRecommendations;
+    if (!courses || courses.length === 0) {
+        showToast('Get recommendations first, then export!', '⚠️');
+        return;
+    }
+    const headers = ['Rank', 'Course Name', 'Institution', 'Level', 'Duration', 'Rating', 'Skills', 'Match Score'];
+    const rows = courses.map((c, i) => [
+        i + 1,
+        `"${c.course_name}"`,
+        `"${c.institution}"`,
+        c.level,
+        c.duration,
+        c.rating,
+        `"${c.skills}"`,
+        `${(c.score * 100).toFixed(1)}%`
+    ]);
+    const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'course_recommendations.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Exported ${courses.length} recommendations as CSV!`, '⬇️');
+}
+
+/* ─────────────────────────────────────────────
+   SKILL INSIGHTS / CHARTS
+───────────────────────────────────────────── */
+const SKILL_PROFILES = {
+    'default': {
+        labels: ['Python', 'Machine Learning', 'Deep Learning', 'Data Analysis', 'SQL', 'Cloud'],
+        current: [70, 55, 40, 65, 60, 35],
+        target:  [90, 85, 80, 75, 70, 70]
+    },
+    'Data Scientist': {
+        labels: ['Python', 'Statistics', 'ML', 'Data Viz', 'SQL', 'Experimentation'],
+        current: [70, 50, 55, 60, 65, 40],
+        target:  [95, 85, 90, 80, 75, 80]
+    },
+    'ML Engineer': {
+        labels: ['Python', 'PyTorch', 'MLOps', 'Cloud', 'APIs', 'System Design'],
+        current: [75, 40, 30, 35, 55, 30],
+        target:  [90, 85, 80, 75, 70, 65]
+    },
+    'Data Engineer': {
+        labels: ['SQL', 'Spark', 'Python', 'Cloud', 'ETL', 'Kafka'],
+        current: [70, 35, 60, 40, 50, 20],
+        target:  [90, 80, 80, 85, 85, 70]
+    }
+};
+
+function getSkillProfile(jobTitle) {
+    for (const [key, val] of Object.entries(SKILL_PROFILES)) {
+        if (jobTitle.toLowerCase().includes(key.toLowerCase())) return val;
+    }
+    return SKILL_PROFILES['default'];
+}
+
+function updateSkillChart() {
+    const job = document.getElementById('insight-job-select').value;
+    const profile = getSkillProfile(job);
+    renderRadarChart(profile);
+}
+
+function renderRadarChart(profile) {
+    if (radarChart) radarChart.destroy();
+    const ctx = document.getElementById('skillRadarChart').getContext('2d');
+    radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: profile.labels,
+            datasets: [
+                {
+                    label: 'Current Level',
+                    data: profile.current,
+                    backgroundColor: 'rgba(56,189,248,0.15)',
+                    borderColor: '#38bdf8',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#38bdf8',
+                    pointRadius: 4
+                },
+                {
+                    label: 'Target Level',
+                    data: profile.target,
+                    backgroundColor: 'rgba(167,139,250,0.12)',
+                    borderColor: '#a78bfa',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#a78bfa',
+                    pointRadius: 4,
+                    borderDash: [5, 5]
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    min: 0, max: 100,
+                    grid: { color: 'rgba(99,165,255,0.1)' },
+                    ticks: { color: '#7a95c0', backdropColor: 'transparent', font: { size: 10 } },
+                    pointLabels: { color: '#94a3b8', font: { size: 11 } }
+                }
+            },
+            plugins: {
+                legend: { labels: { color: '#94a3b8', font: { size: 11 } } }
+            }
+        }
+    });
+}
+
+function renderModelBarChart() {
+    if (modelBarChart) modelBarChart.destroy();
+    const ctx = document.getElementById('modelBarChart').getContext('2d');
+    const models = Object.keys(MODEL_METRICS);
+    const scores = Object.values(MODEL_METRICS);
+    modelBarChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: models,
+            datasets: [{
+                label: 'Precision@10',
+                data: scores,
+                backgroundColor: models.map((_, i) => `hsl(${200 + i*20}, 70%, ${55 + i*3}%)`),
+                borderRadius: 6,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { ticks: { color: '#7a95c0', font: { size: 10 } }, grid: { color: 'rgba(99,165,255,0.07)' } },
+                y: { min: 0.6, max: 1.0, ticks: { color: '#7a95c0', font: { size: 10 } }, grid: { color: 'rgba(99,165,255,0.07)' } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
+function renderInsights() {
+    const job = document.getElementById('insight-job-select')?.value || 'default';
+    const profile = getSkillProfile(job);
+    renderRadarChart(profile);
+    renderModelBarChart();
+    updateProgress();
+}
+
+/* ─────────────────────────────────────────────
+   TRENDING
+───────────────────────────────────────────── */
+function renderTrending() {
+    const container = document.getElementById('trending-list');
+    container.innerHTML = '';
+    TRENDING_DATA.forEach(course => {
+        const card = document.createElement('div');
+        card.className = 'trending-card';
+        card.innerHTML = `
+            <div class="trending-rank">#${course.rank}</div>
+            <div class="trending-name">${course.name}</div>
+            <div class="trending-by">🏫 ${course.by}</div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span class="trending-badge">${course.badge}</span>
+                <span style="font-size:0.8rem; color:var(--accent-amber);">★ ${course.rating}</span>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+/* ─────────────────────────────────────────────
+   METRICS
+───────────────────────────────────────────── */
+function renderMetrics() {
+    const grid = document.getElementById('metrics-grid');
+    grid.innerHTML = '';
+    const colors = ['#34d399', '#38bdf8', '#818cf8', '#fbbf24', '#a78bfa', '#fb7185', '#6ee7b7', '#93c5fd'];
+    Object.entries(MODEL_METRICS).forEach(([model, score], i) => {
+        const card = document.createElement('div');
+        card.className = 'metric-card';
+        card.innerHTML = `
+            <div class="metric-model">${model}</div>
+            <div class="metric-score" style="color:${colors[i]}">${score.toFixed(4)}</div>
+            <div class="metric-label">Precision@10</div>
+        `;
+        grid.appendChild(card);
+    });
+
+    // Render chart
+    if (metricsBarChart) metricsBarChart.destroy();
+    const ctx = document.getElementById('metricsBarChart').getContext('2d');
+    const models = Object.keys(MODEL_METRICS);
+    const scores = Object.values(MODEL_METRICS);
+    metricsBarChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: models,
+            datasets: [{
+                label: 'Precision@10',
+                data: scores,
+                backgroundColor: colors,
+                borderRadius: 8,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            indexAxis: 'y',
+            scales: {
+                x: { min: 0.6, max: 0.9, ticks: { color: '#7a95c0' }, grid: { color: 'rgba(99,165,255,0.07)' } },
+                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(99,165,255,0.07)' } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+/* ─────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────── */
+window.onload = async () => {
+    await initStats();
+    updateSavedCount();
+    fetchRecommendations();
+    renderTrending();
+};
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════
+   ANIMATION ENGINE
+═══════════════════════════════════════════════ */
+
+// ── 1. Star / Particle Canvas ──
+(function(){
+  const canvas = document.getElementById('anim-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [], comets = [];
+
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Generate stars
+  for(let i = 0; i < 120; i++){
+    stars.push({
+      x: Math.random() * 9999, y: Math.random() * 9999,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random() * 0.6 + 0.1,
+      da: (Math.random() - 0.5) * 0.008,
+      speed: Math.random() * 0.12 + 0.03
+    });
+  }
+
+  function spawnComet(){
+    comets.push({
+      x: Math.random() * W, y: 0,
+      len: Math.random() * 120 + 60,
+      speed: Math.random() * 6 + 4,
+      angle: Math.PI / 4 + (Math.random() - 0.5) * 0.4,
+      alpha: 1, r: Math.random() * 1.5 + 0.5
+    });
+  }
+  setInterval(spawnComet, 2800);
+
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+
+    // Stars (slowly drift)
+    stars.forEach(s => {
+      s.x = (s.x + s.speed) % W;
+      s.a = Math.max(0.05, Math.min(0.7, s.a + s.da));
+      if(s.a <= 0.05 || s.a >= 0.7) s.da *= -1;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y % H, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(56,189,248,${s.a})`;
+      ctx.fill();
+    });
+
+    // Comets
+    comets.forEach((c, i) => {
+      ctx.save();
+      ctx.globalAlpha = c.alpha;
+      const grad = ctx.createLinearGradient(
+        c.x, c.y,
+        c.x - Math.cos(c.angle) * c.len,
+        c.y - Math.sin(c.angle) * c.len
+      );
+      grad.addColorStop(0, `rgba(255,255,255,0.9)`);
+      grad.addColorStop(0.3, `rgba(56,189,248,0.6)`);
+      grad.addColorStop(1, `rgba(56,189,248,0)`);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = c.r;
+      ctx.beginPath();
+      ctx.moveTo(c.x, c.y);
+      ctx.lineTo(c.x - Math.cos(c.angle) * c.len, c.y - Math.sin(c.angle) * c.len);
+      ctx.stroke();
+      ctx.restore();
+      c.x += Math.cos(c.angle) * c.speed;
+      c.y += Math.sin(c.angle) * c.speed;
+      c.alpha -= 0.012;
+      if(c.alpha <= 0 || c.x > W || c.y > H) comets.splice(i, 1);
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── 2. Cursor Glow ──
+(function(){
+  const glow = document.getElementById('cursor-glow');
+  let mx = -500, my = -500;
+  let cx = -500, cy = -500;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function step(){
+    cx += (mx - cx) * 0.08;
+    cy += (my - cy) * 0.08;
+    glow.style.left = cx + 'px';
+    glow.style.top  = cy + 'px';
+    requestAnimationFrame(step);
+  }
+  step();
+})();
+
+// ── 3. Hero Floating Orbs ──
+(function(){
+  const hero = document.querySelector('.hero-banner');
+  if(!hero) return;
+  const orbs = [
+    { color:'rgba(56,189,248,0.12)', size:'280px', top:'-40px',  left:'-40px',  dur:'7s' },
+    { color:'rgba(129,140,248,0.1)', size:'220px', top:'30px',   right:'-30px', dur:'9s' },
+    { color:'rgba(167,139,250,0.1)', size:'160px', bottom:'-20px',left:'40%',   dur:'11s' },
+    { color:'rgba(52,211,153,0.07)', size:'120px', bottom:'-10px',right:'20%',  dur:'6s' },
+  ];
+  orbs.forEach(o => {
+    const el = document.createElement('div');
+    el.className = 'hero-orb';
+    el.style.cssText = [
+      `width:${o.size}`, `height:${o.size}`,
+      `background:radial-gradient(circle,${o.color},transparent 70%)`,
+      o.top    ? `top:${o.top}`       : '',
+      o.bottom ? `bottom:${o.bottom}` : '',
+      o.left   ? `left:${o.left}`     : '',
+      o.right  ? `right:${o.right}`   : '',
+      `--dur:${o.dur}`
+    ].filter(Boolean).join(';');
+    hero.appendChild(el);
+  });
+})();
+
+// ── 4. Stat Card 3D Tilt ──
+(function(){
+  document.querySelectorAll('.stat-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width  - 0.5) * 18;
+      const y = ((e.clientY - r.top)  / r.height - 0.5) * 18;
+      card.style.transform = `perspective(600px) rotateY(${x}deg) rotateX(${-y}deg) translateY(-4px) scale(1.02)`;
+      card.style.borderColor = 'var(--card-border-active)';
+      card.style.boxShadow = `0 16px 40px rgba(0,0,0,0.3), 0 0 20px rgba(56,189,248,0.15)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = 'perspective(600px) rotateY(0) rotateX(0) translateY(0) scale(1)';
+      card.style.borderColor = '';
+      card.style.boxShadow = '';
+    });
+  });
+})();
+
+// ── 5. Button Ripple ──
+(function(){
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.btn');
+    if(!btn) return;
+    const r = btn.getBoundingClientRect();
+    const size = Math.max(r.width, r.height) * 1.5;
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple-wave';
+    ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-r.left-size/2}px;top:${e.clientY-r.top-size/2}px`;
+    btn.appendChild(ripple);
+    ripple.addEventListener('animationend', () => ripple.remove());
+  });
+})();
+
+// ── 6. Staggered card slide-in on render ──
+// Hook into the existing renderCourses / filterCourses by observing DOM mutations
+(function(){
+  const observer = new MutationObserver(mutations => {
+    mutations.forEach(m => {
+      m.addedNodes.forEach(node => {
+        if(node.nodeType === 1 && node.classList && node.classList.contains('course-card')){
+          // find index among siblings
+          const siblings = Array.from(node.parentNode.children);
+          const idx = siblings.indexOf(node);
+          node.classList.add('anim-in');
+          node.style.animationDelay = Math.min(idx * 0.06, 0.6) + 's';
+        }
+      });
+    });
+  });
+  const list = document.getElementById('course-list');
+  if(list) observer.observe(list, { childList: true, subtree: true });
+})();
+
+// ── 7. Magnetic course-card (subtle cursor pull) ──
+(function(){
+  document.addEventListener('mousemove', e => {
+    document.querySelectorAll('.course-card').forEach(card => {
+      const r = card.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2);
+      const dy = e.clientY - (r.top  + r.height / 2);
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < 180){
+        const pull = (1 - dist/180) * 5;
+        card.style.transform = `translateX(${dx/dist*pull}px) translateY(${dy/dist*pull*0.5}px)`;
+      } else {
+        card.style.transform = '';
+      }
+    });
+  });
+})();
+
+// ── 8. Navbar logo click sparkle ──
+(function(){
+  const brand = document.querySelector('.nav-brand');
+  if(!brand) return;
+  brand.style.cursor = 'pointer';
+  brand.addEventListener('click', () => {
+    for(let i = 0; i < 12; i++){
+      const spark = document.createElement('div');
+      const angle = (i / 12) * Math.PI * 2;
+      const dist  = 40 + Math.random() * 30;
+      const size  = 4 + Math.random() * 4;
+      spark.style.cssText = `
+        position:fixed;
+        left:${brand.getBoundingClientRect().left + brand.offsetWidth/2}px;
+        top:${brand.getBoundingClientRect().top + brand.offsetHeight/2}px;
+        width:${size}px; height:${size}px;
+        border-radius:50%;
+        background:hsl(${i*30},90%,65%);
+        pointer-events:none;
+        z-index:9999;
+        transform:translate(-50%,-50%);
+        transition:all 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
+      `;
+      document.body.appendChild(spark);
+      requestAnimationFrame(() => {
+        spark.style.left = (brand.getBoundingClientRect().left + brand.offsetWidth/2 + Math.cos(angle)*dist) + 'px';
+        spark.style.top  = (brand.getBoundingClientRect().top  + brand.offsetHeight/2 + Math.sin(angle)*dist) + 'px';
+        spark.style.opacity = '0';
+        spark.style.transform = 'translate(-50%,-50%) scale(0)';
+      });
+      setTimeout(() => spark.remove(), 700);
+    }
+  });
+})();
+</script>
+</body>
+</html>
