@@ -145,15 +145,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--light);heig
 /* ── PROBLEM CARD ── */
 .prob-card{background:linear-gradient(135deg,rgba(13,27,58,.95),rgba(17,30,63,.9));border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:border-color .3s;}
 .prob-card:hover{border-color:var(--blue);}
-.prob-icon{font-size:28px;margin-bottom:4px;}
-.prob-title{font-size:14px;font-weight:800;color:var(--white);}
-.prob-desc{font-size:12px;color:var(--muted);line-height:1.6;}
-.prob-impact{display:flex;align-items:center;gap:6px;margin-top:4px;}
-.prob-impact-label{font-size:10px;font-weight:700;color:var(--rose);text-transform:uppercase;letter-spacing:.5px;}
-.prob-bar{flex:1;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+.prob-icon{font-size:36px;margin-bottom:4px;}
+.prob-title{font-size:17px;font-weight:800;color:var(--white);}
+.prob-desc{font-size:14px;color:var(--muted);line-height:1.65;}
+.prob-impact{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.prob-impact-label{font-size:12px;font-weight:700;color:var(--rose);text-transform:uppercase;letter-spacing:.5px;}
+.prob-bar{flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
 .prob-bar-fill{height:100%;border-radius:3px;animation:growBar 1.2s ease forwards;}
 @keyframes growBar{from{width:0}to{width:var(--w)}}
-.prob-solution{font-size:11px;color:var(--emerald);font-weight:600;display:flex;align-items:center;gap:5px;}
+.prob-solution{font-size:13px;color:var(--emerald);font-weight:600;display:flex;align-items:center;gap:5px;}
 
 /* ── MODEL CARD ── */
 .model-card{background:var(--card2);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;transition:all .2s;}
@@ -287,7 +287,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--light);heig
     <div class="ss-card" style="flex:2;min-height:0;">
       <div class="ss-card-title">&#127968; Live Application Dashboard &nbsp;<span class="pulse"></span></div>
       <div class="ss-card-body">
-        <img src="http://127.0.0.1:5000/static/thumbnail.png" class="ss-cover" alt="CourseAI Dashboard" style="height:100%;"/>
+        <img src="https://courseai-recommendation.onrender.com/static/thumbnail.png" class="ss-cover" alt="CourseAI Dashboard" style="height:100%;"/>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;flex-shrink:0;">
@@ -397,7 +397,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--light);heig
             <div class="arch-sep">&#8594;</div>
             <div class="arch-node">Score Matrices<div class="sub">8 x (150×242)</div></div>
             <div class="arch-sep">&#8594;</div>
-            <div class="arch-node">ngrok Tunnel<div class="sub">Public HTTPS</div></div>
+            <div class="arch-node">Render Cloud<div class="sub">Free HTTPS Hosting</div></div>
           </div>
         </div>
       </div>
@@ -471,7 +471,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--light);heig
     <div class="ss-card fade-left d2">
       <div class="ss-card-title">&#128247; Live Recommendations Dashboard</div>
       <div class="ss-card-body">
-        <img src="http://127.0.0.1:5000/figures/fig2_recommendations_grid.png" class="ss-cover" alt="Recommendations Grid" style="height:100%;"/>
+        <img src="https://courseai-recommendation.onrender.com/figures/fig2_recommendations_grid.png" class="ss-cover" alt="Recommendations Grid" style="height:100%;"/>
       </div>
     </div>
     <div class="col fade-right d3">
@@ -826,16 +826,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--light);heig
     <div class="col fade-left d2">
       <div class="card emerald">
         <div class="card-title em">&#127760; Live Deployment</div>
-        <div class="step"><div class="step-num em">1</div><div class="step-content"><strong>Local Web Server</strong><span>Running at <code style="color:var(--blue);font-family:monospace;font-size:10.5px;">http://127.0.0.1:5000</code> with zero-cache headers enforced</span></div></div>
-        <div class="step"><div class="step-num em">2</div><div class="step-content"><strong>Public ngrok Tunnel</strong><span>HTTPS tunnel live for peer evaluation, recruiter demos, and professor review</span></div></div>
-        <div class="step"><div class="step-num em">3</div><div class="step-content"><strong>Instant Startup</strong><span>Just run <code style="color:var(--emerald);font-size:10.5px;font-family:monospace;">python app.py</code></span></div></div>
+        <div class="step"><div class="step-num em">1</div><div class="step-content"><strong>Local Web Server</strong><span>Run <code style="color:var(--blue);font-family:monospace;font-size:10.5px;">python app.py</code> → opens at <code style="color:var(--blue);font-family:monospace;font-size:10.5px;">http://127.0.0.1:5000</code></span></div></div>
+        <div class="step"><div class="step-num em">2</div><div class="step-content"><strong>Render Cloud Deployment</strong><span>Deployed via gunicorn on Render free tier — runs 24/7, even with PC off</span></div></div>
+        <div class="step"><div class="step-num em">3</div><div class="step-content"><strong>Live Public URL</strong><span>Accessible from any device, anywhere: <code style="color:var(--emerald);font-size:10px;font-family:monospace;">courseai-recommendation.onrender.com</code></span></div></div>
       </div>
       <div class="terminal fade-left d4">
+        <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd">pip install -r requirements.txt</span></div>
         <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd">python app.py</span></div>
         <div class="term-line" style="padding-left:12px;"><span class="term-out">* Running on </span><span class="term-url">http://127.0.0.1:5000</span></div>
-        <div class="term-line" style="padding-left:12px;"><span class="term-out">* Debug mode: on</span></div>
-        <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd">ngrok http 5000</span></div>
-        <div class="term-line" style="padding-left:12px;"><span class="term-out">Forwarding </span><span class="term-url">https://xxx.ngrok.io</span></div>
+        <div class="term-line" style="margin-top:4px;"><span class="term-prompt">🌐</span><span class="term-url"> https://courseai-recommendation.onrender.com</span></div>
+        <div class="term-line" style="padding-left:12px;"><span class="term-out">✓ Live 24/7 on Render cloud</span></div>
       </div>
     </div>
     <!-- Contributions -->
@@ -877,7 +877,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--light);heig
         <div style="font-size:48px;margin-bottom:8px;">&#127979;</div>
         <div style="font-size:28px;font-weight:900;color:var(--white);margin-bottom:4px;">Thank You</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Questions &amp; Discussion</div>
-        <div style="font-size:11px;color:var(--blue);font-family:monospace;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);padding:6px 14px;border-radius:8px;">http://127.0.0.1:5000</div>
+        <a href="https://courseai-recommendation.onrender.com" target="_blank" style="font-size:10.5px;color:var(--blue);font-family:monospace;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);padding:6px 14px;border-radius:8px;text-decoration:none;display:block;">🌐 courseai-recommendation.onrender.com</a>
       </div>
     </div>
   </div>
