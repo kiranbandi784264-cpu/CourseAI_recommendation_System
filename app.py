@@ -250,5 +250,7 @@ def api_run_pipeline():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    print("Starting Course Recommendation Web Server at http://127.0.0.1:5000")
-    app.run(host='127.0.0.1', port=5000, debug=True, use_reloader=True)
+    port = int(os.environ.get("PORT", 5000))
+    host = "0.0.0.0" if os.environ.get("RENDER") else "127.0.0.1"
+    print(f"Starting Course Recommendation Web Server at http://{host}:{port}")
+    app.run(host=host, port=port, debug=False, use_reloader=False)
