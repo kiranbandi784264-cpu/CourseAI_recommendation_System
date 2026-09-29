@@ -6,7 +6,7 @@ import numpy as np
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from run_pipeline import run_full_pipeline
+# Pipeline imported lazily inside the route to avoid heavy torch import on startup
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
@@ -244,6 +244,7 @@ def chat():
 @app.route('/api/run_pipeline', methods=['POST'])
 def api_run_pipeline():
     try:
+        from run_pipeline import run_full_pipeline  # lazy import to avoid heavy startup
         metrics = run_full_pipeline()
         return jsonify({'status': 'success', 'metrics': metrics})
     except Exception as e:
