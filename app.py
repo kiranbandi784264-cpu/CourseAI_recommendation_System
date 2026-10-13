@@ -3,12 +3,28 @@ import json
 import re
 import pandas as pd
 import numpy as np
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, session
+from werkzeug.security import generate_password_hash, check_password_hash
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 # Pipeline imported lazily inside the route to avoid heavy torch import on startup
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
+app.secret_key = os.environ.get('SECRET_KEY', 'courseai-secret-key-2026-change-in-prod')
+
+# ── USER STORE ──────────────────────────────────────────────────────────────
+USERS_FILE = os.path.join('data', 'users.json')
+
+def _load_users():
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+def _save_users(users):
+    os.makedirs('data', exist_ok=True)
+    with open(USERS_FILE, 'w') as f:
+        json.dump(users, f, indent=2)
 
 CLEANED_DIR = 'data/cleaned'
 SCORE_DIR = 'data/score_matrices'
@@ -31,6 +47,14 @@ def presentation():
 @app.route('/download-presentation')
 def download_presentation():
     return send_from_directory('static', 'presentation.html', as_attachment=True, download_name='CourseAI_Interactive_Presentation.html')
+
+@app.route('/report-pdf')
+def serve_report_pdf():
+    return send_from_directory('.', 'CourseAI_Technical_Review_Response_Report.pdf')
+
+@app.route('/download-report-pdf')
+def download_report_pdf():
+    return send_from_directory('.', 'CourseAI_Technical_Review_Response_Report.pdf', as_attachment=True, download_name='CourseAI_Technical_Review_Response_Report.pdf')
 
 @app.route('/figures/<path:filename>')
 def serve_figure(filename):
@@ -65,6 +89,20 @@ def get_stats():
         'users': users_list[:50],
         'jobs': jobs_list
     })
+
+@app.route('/api/metrics')
+def get_metrics():
+    metrics_json = os.path.join('data', 'model_evaluation_results.json')
+    if os.path.exists(metrics_json):
+        with open(metrics_json, 'r') as f:
+            data = json.load(f)
+        return jsonify(data)
+    try:
+        from src.evaluation import evaluate_all_models
+        df = evaluate_all_models()
+        return jsonify(df.to_dict(orient='records'))
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/recommend')
 def recommend():
@@ -250,6 +288,70 @@ def api_run_pipeline():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+# ── AUTH ROUTES ─────────────────────────────────────────────────────────────
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    data = request.get_json() or {}
+    name     = data.get('name', '').strip()
+    email    = data.get('email', '').strip().lower()
+    password = data.get('password', '').strip()
+
+    if not name or not email or not password:
+        return jsonify({'success': False, 'message': 'All fields are required.'}), 400
+    if len(password) < 6:
+        return jsonify({'success': False, 'message': 'Password must be at least 6 characters.'}), 400
+    if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+        return jsonify({'success': False, 'message': 'Please enter a valid email address.'}), 400
+
+    users = _load_users()
+    if email in users:
+        return jsonify({'success': False, 'message': 'An account with this email already exists.'}), 409
+
+    users[email] = {
+        'name': name,
+        'email': email,
+        'password_hash': generate_password_hash(password),
+        'created_at': pd.Timestamp.now().isoformat()
+    }
+    _save_users(users)
+    session['user_email'] = email
+    session['user_name']  = name
+    return jsonify({'success': True, 'name': name, 'email': email})
+
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json() or {}
+    email    = data.get('email', '').strip().lower()
+    password = data.get('password', '').strip()
+
+    if not email or not password:
+        return jsonify({'success': False, 'message': 'Email and password are required.'}), 400
+
+    users = _load_users()
+    user  = users.get(email)
+    if not user or not check_password_hash(user['password_hash'], password):
+        return jsonify({'success': False, 'message': 'Invalid email or password.'}), 401
+
+    session['user_email'] = email
+    session['user_name']  = user['name']
+    return jsonify({'success': True, 'name': user['name'], 'email': email})
+
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'success': True})
+
+
+@app.route('/api/me')
+def me():
+    if 'user_email' in session:
+        return jsonify({'logged_in': True, 'name': session['user_name'], 'email': session['user_email']})
+    return jsonify({'logged_in': False})
+
+
+# ── SERVER START ─────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     host = "0.0.0.0" if os.environ.get("RENDER") else "127.0.0.1"
