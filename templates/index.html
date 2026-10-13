@@ -1550,7 +1550,7 @@
                     <div class="chart-box"><canvas id="skillRadarChart"></canvas></div>
                 </div>
                 <div>
-                    <div style="font-weight:700; margin-bottom:0.75rem; color:var(--accent-violet);">📈 Recommendation Score by Model</div>
+                    <div style="font-weight:700; margin-bottom:0.75rem; color:var(--accent-violet);">📈 Skill Gap Deficit by Domain</div>
                     <div class="chart-box"><canvas id="modelBarChart"></canvas></div>
                 </div>
             </div>
@@ -1589,62 +1589,25 @@
         <div class="results-panel">
             <div class="results-header">
                 <div>
-                    <h2>🧠 Model Performance & Accuracy Benchmark Dashboard</h2>
-                    <span style="font-size:0.82rem; color:var(--text-muted);">Empirical evaluation on held-out test split (test.csv) with training interactions masked</span>
+                    <h2>🧠 Model Performance Dashboard</h2>
+                    <span style="font-size:0.82rem; color:var(--text-muted);">Real-time benchmark evaluation across recommendation models</span>
                 </div>
                 <div>
                     <button class="btn btn-sm btn-outline" onclick="loadLiveMetrics()">🔄 Refresh Benchmark Metrics</button>
                 </div>
             </div>
 
-            <!-- Reviewer / Instructor Technical Notes Card -->
-            <div style="background:rgba(16,28,58,0.9); border:1px solid var(--card-border-active); border-radius:1rem; padding:1.25rem 1.5rem; margin-bottom:1.5rem;">
-                <div style="font-size:0.92rem; font-weight:800; color:var(--accent-blue); margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
-                    💡 Technical Evaluation & Model Architecture Insights
-                </div>
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem; font-size:0.82rem; line-height:1.55; color:var(--text-muted);">
-                    <div style="background:rgba(6,13,31,0.5); padding:0.85rem; border-radius:0.6rem; border-left:3px solid var(--accent-emerald);">
-                        <strong style="color:var(--text-main);">1. Ensemble vs. Individual Execution:</strong><br>
-                        • <strong>7 Base Models</strong> (LightGCN, NCF, UBCF, Content, Item-CF, Job-Skills, Implicit LightFM) are developed and executed as independent modular files.<br>
-                        • The <strong>Hybrid Recommender</strong> is an <em>ensemble model</em> that computes convex linear blending $\sum_{m=1}^{7} \omega_m \tilde{y}^m$ across all 7 Min-Max normalized score distributions.
-                    </div>
-                    <div style="background:rgba(6,13,31,0.5); padding:0.85rem; border-radius:0.6rem; border-left:3px solid var(--accent-blue);">
-                        <strong style="color:var(--text-main);">2. Evaluation Function & Metrics:</strong><br>
-                        • The evaluation function (<code>evaluate_top_k</code> / <code>evaluate_all_models</code>) tests each model on <code>test.csv</code>.<br>
-                        • <strong>Train-interaction masking</strong> ensures models are evaluated on recommending novel courses rather than trivial repeats of already-taken items.
-                    </div>
-                    <div style="background:rgba(6,13,31,0.5); padding:0.85rem; border-radius:0.6rem; border-left:3px solid var(--accent-amber);">
-                        <strong style="color:var(--text-main);">3. Precision@10 vs. Hit Rate (85%):</strong><br>
-                        • In sparse MOOC settings (~2 ground-truth test courses per user), theoretical maximum Precision@10 is $2/10 = 20\%$.<br>
-                        • The <strong>85% benchmark</strong> reflects <strong>Hit Rate@10</strong> (85%-92% of test learners received at least 1 relevant recommendation) and normalized relative rank.
-                    </div>
-                </div>
-            </div>
-
             <div id="metrics-grid" class="metrics-grid">
-                <!-- Populated -->
+                <!-- Dynamically populated via /api/metrics -->
             </div>
 
             <!-- Dynamic Chart -->
             <div class="chart-panel" style="margin-top:1.5rem;">
                 <div style="font-weight:700; margin-bottom:0.75rem; color:var(--accent-blue); display:flex; justify-content:space-between; align-items:center;">
-                    <span>📊 Live Model Comparison Chart</span>
-                    <span style="font-size:0.78rem; font-weight:normal; color:var(--text-muted);">Interactive Chart.js View</span>
+                    <span>📊 Live Model Comparison</span>
+                    <span style="font-size:0.78rem; font-weight:normal; color:var(--text-muted);">Hit Rate & Precision Benchmark</span>
                 </div>
                 <div style="height:320px;"><canvas id="metricsBarChart"></canvas></div>
-            </div>
-
-            <!-- High-Res Static Benchmark Figure -->
-            <div class="chart-panel" style="margin-top:1.5rem;">
-                <div style="font-weight:700; margin-bottom:0.75rem; color:var(--accent-indigo);">
-                    📈 High-Resolution Benchmark Plot (Exported from Pipeline)
-                </div>
-                <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1rem;">
-                    Generated by <code>src.evaluation.evaluate_all_models()</code> comparing Precision@10, Recall@10, Hit Rate@10, and NDCG@10 across all 8 models.
-                </p>
-                <div style="text-align:center;">
-                    <img src="/figures/model_accuracy_comparison.png" alt="Model Accuracy Comparison" style="width:100%; max-width:980px; border-radius:0.75rem; border:1px solid var(--card-border); box-shadow:0 8px 24px rgba(0,0,0,0.4);" onerror="this.src='/figures/fig6_model_metrics_barchart.png'">
-                </div>
             </div>
         </div>
     </div>
@@ -1748,17 +1711,6 @@ let currentModalIndex = -1;
 let radarChart = null;
 let modelBarChart = null;
 let metricsBarChart = null;
-
-const MODEL_METRICS = {
-    'Hybrid':     0.8520,
-    'LightGCN':   0.8105,
-    'NCF':        0.7892,
-    'User-Based': 0.7645,
-    'Content':    0.7410,
-    'Job-Skills': 0.7810,
-    'Item-Based': 0.7320,
-    'Implicit':   0.7560
-};
 
 const TRENDING_DATA = [
     { rank:1, name:'Machine Learning Specialization', by:'DeepLearning.AI', badge:'🔥 Viral', rating:4.9 },
@@ -2474,6 +2426,7 @@ function updateSkillChart() {
     const job = document.getElementById('insight-job-select').value;
     const profile = getSkillProfile(job);
     renderRadarChart(profile);
+    renderModelBarChart(profile);
 }
 
 function renderRadarChart(profile) {
@@ -2523,19 +2476,20 @@ function renderRadarChart(profile) {
     });
 }
 
-function renderModelBarChart() {
+function renderModelBarChart(profile) {
     if (modelBarChart) modelBarChart.destroy();
-    const ctx = document.getElementById('modelBarChart').getContext('2d');
-    const models = Object.keys(MODEL_METRICS);
-    const scores = Object.values(MODEL_METRICS);
+    const ctx = document.getElementById('modelBarChart')?.getContext('2d');
+    if (!ctx) return;
+    const prof = profile || getSkillProfile(document.getElementById('insight-job-select')?.value || 'default');
+    const gaps = prof.labels.map((label, idx) => Math.max(0, (prof.target[idx] || 0) - (prof.current[idx] || 0)));
     modelBarChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: models,
+            labels: prof.labels,
             datasets: [{
-                label: 'Precision@10',
-                data: scores,
-                backgroundColor: models.map((_, i) => `hsl(${200 + i*20}, 70%, ${55 + i*3}%)`),
+                label: 'Skill Deficit to Target (%)',
+                data: gaps,
+                backgroundColor: gaps.map(g => g > 40 ? 'rgba(244,63,94,0.85)' : g > 20 ? 'rgba(251,191,36,0.85)' : 'rgba(52,211,153,0.85)'),
                 borderRadius: 6,
                 borderWidth: 0
             }]
@@ -2545,10 +2499,11 @@ function renderModelBarChart() {
             maintainAspectRatio: false,
             scales: {
                 x: { ticks: { color: '#7a95c0', font: { size: 10 } }, grid: { color: 'rgba(99,165,255,0.07)' } },
-                y: { min: 0.6, max: 1.0, ticks: { color: '#7a95c0', font: { size: 10 } }, grid: { color: 'rgba(99,165,255,0.07)' } }
+                y: { min: 0, max: 100, ticks: { color: '#7a95c0', font: { size: 10 } }, grid: { color: 'rgba(99,165,255,0.07)' }, title: { display: true, text: 'Deficit Points', color: '#7a95c0' } }
             },
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => `Deficit: ${ctx.raw} pts needed` } }
             }
         }
     });
@@ -2558,7 +2513,7 @@ function renderInsights() {
     const job = document.getElementById('insight-job-select')?.value || 'default';
     const profile = getSkillProfile(job);
     renderRadarChart(profile);
-    renderModelBarChart();
+    renderModelBarChart(profile);
     updateProgress();
 }
 
@@ -2597,12 +2552,13 @@ async function loadLiveMetrics() {
         if (Array.isArray(data) && data.length > 0) {
             liveEvaluationData = data;
             renderMetrics();
-            showToast('Benchmark metrics updated from test evaluation!', '✅');
+            showToast('Metrics updated!', '✅');
         } else {
+            showToast('No evaluation data found. Run the pipeline first.', '⚠️');
             renderMetrics();
         }
     } catch(err) {
-        console.error('Error fetching metrics:', err);
+        showToast('Could not fetch metrics.', '❌');
         renderMetrics();
     }
 }
@@ -2610,118 +2566,78 @@ async function loadLiveMetrics() {
 async function renderMetrics() {
     const grid = document.getElementById('metrics-grid');
     grid.innerHTML = '';
-    const colors = ['#38bdf8', '#818cf8', '#a78bfa', '#fbbf24', '#34d399', '#fb7185', '#6ee7b7', '#93c5fd'];
+    const colors = ['#38bdf8','#818cf8','#a78bfa','#fbbf24','#34d399','#fb7185','#6ee7b7','#93c5fd'];
+    const chartWrap = document.getElementById('metrics-chart-wrap');
 
     if (!liveEvaluationData) {
         try {
             const res = await fetch('/api/metrics');
             const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
-                liveEvaluationData = data;
-            }
+            if (Array.isArray(data) && data.length > 0) liveEvaluationData = data;
         } catch(e) {}
     }
 
     if (liveEvaluationData && liveEvaluationData.length > 0) {
+        // Render metric cards
         liveEvaluationData.forEach((item, i) => {
             const card = document.createElement('div');
             card.className = 'metric-card';
             const color = colors[i % colors.length];
+            const hitRate = item['HitRate@10'] != null ? (item['HitRate@10']*100).toFixed(1) + '%' : 'N/A';
+            const p10    = item['Precision@10'] != null ? item['Precision@10'].toFixed(4) : 'N/A';
+            const r10    = item['Recall@10']    != null ? item['Recall@10'].toFixed(4)    : 'N/A';
+            const ndcg   = item['NDCG@10']      != null ? item['NDCG@10'].toFixed(4)      : 'N/A';
             card.innerHTML = `
                 <div class="metric-model" style="color:${color}">${item.Model}</div>
-                <div style="font-size:1.4rem; font-weight:900; color:${color}; margin:0.3rem 0;">${(item['HitRate@10']*100).toFixed(1)}% <span style="font-size:0.75rem; font-weight:600; color:var(--text-muted);">HitRate</span></div>
-                <div style="display:flex; justify-content:space-around; font-size:0.75rem; color:var(--text-muted); border-top:1px solid var(--card-border); padding-top:0.35rem; margin-top:0.25rem;">
-                    <span>P@10: <strong style="color:var(--text-main);">${item['Precision@10'].toFixed(4)}</strong></span>
-                    <span>R@10: <strong style="color:var(--text-main);">${item['Recall@10'].toFixed(4)}</strong></span>
+                <div style="font-size:1.6rem; font-weight:900; color:${color}; margin:0.4rem 0;">${hitRate} <span style="font-size:0.75rem; font-weight:600; color:var(--text-muted);">Hit Rate@10</span></div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.25rem; font-size:0.74rem; color:var(--text-muted); border-top:1px solid var(--card-border); padding-top:0.4rem; margin-top:0.2rem;">
+                    <span>P@10 <strong style="color:var(--text-main);">${p10}</strong></span>
+                    <span>R@10 <strong style="color:var(--text-main);">${r10}</strong></span>
+                    <span style="grid-column:span 2;">NDCG <strong style="color:var(--text-main);">${ndcg}</strong></span>
                 </div>
             `;
             grid.appendChild(card);
         });
 
-        // Render chart with live evaluation data
+        // Render chart
         if (metricsBarChart) metricsBarChart.destroy();
         const ctx = document.getElementById('metricsBarChart').getContext('2d');
-        const models = liveEvaluationData.map(d => d.Model);
-        const hitRates = liveEvaluationData.map(d => +(d['HitRate@10']*100).toFixed(2));
-        const precisions = liveEvaluationData.map(d => +(d['Precision@10']*100).toFixed(2));
-
+        const models    = liveEvaluationData.map(d => d.Model);
+        const hitRates  = liveEvaluationData.map(d => d['HitRate@10'] != null ? +(d['HitRate@10']*100).toFixed(2) : 0);
+        const precisions = liveEvaluationData.map(d => d['Precision@10'] != null ? +(d['Precision@10']*100).toFixed(3) : 0);
         metricsBarChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: models,
                 datasets: [
-                    {
-                        label: 'Hit Rate@10 (%)',
-                        data: hitRates,
-                        backgroundColor: '#34d399',
-                        borderRadius: 6,
-                        borderWidth: 0
-                    },
-                    {
-                        label: 'Precision@10 (x100 %)',
-                        data: precisions,
-                        backgroundColor: '#38bdf8',
-                        borderRadius: 6,
-                        borderWidth: 0
-                    }
+                    { label: 'Hit Rate@10 (%)', data: hitRates,   backgroundColor: '#34d399', borderRadius: 6 },
+                    { label: 'Precision×100 (%)', data: precisions, backgroundColor: '#38bdf8', borderRadius: 6 }
                 ]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false, indexAxis: 'y',
                 scales: {
-                    x: { ticks: { color: '#7a95c0' }, grid: { color: 'rgba(99,165,255,0.07)' }, title: { display: true, text: 'Percentage (%)', color: '#7a95c0' } },
-                    y: { ticks: { color: '#94a3b8', font: { weight: 'bold' } }, grid: { color: 'rgba(99,165,255,0.07)' } }
+                    x: { ticks:{color:'#7a95c0'}, grid:{color:'rgba(99,165,255,0.07)'}, title:{display:true,text:'Percentage (%)',color:'#7a95c0'} },
+                    y: { ticks:{color:'#94a3b8', font:{weight:'bold'}}, grid:{color:'rgba(99,165,255,0.07)'} }
                 },
                 plugins: {
-                    legend: { labels: { color: '#f0f6ff' } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(ctx) { return `${ctx.dataset.label}: ${ctx.raw}%`; }
-                        }
-                    }
+                    legend: { labels:{color:'#f0f6ff'} },
+                    tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}%` } }
                 }
             }
         });
-    } else {
-        // Fallback static metrics
-        Object.entries(MODEL_METRICS).forEach(([model, score], i) => {
-            const card = document.createElement('div');
-            card.className = 'metric-card';
-            card.innerHTML = `
-                <div class="metric-model">${model}</div>
-                <div class="metric-score" style="color:${colors[i]}">${score.toFixed(4)}</div>
-                <div class="metric-label">Precision@10 Benchmark</div>
-            `;
-            grid.appendChild(card);
-        });
 
-        if (metricsBarChart) metricsBarChart.destroy();
-        const ctx = document.getElementById('metricsBarChart').getContext('2d');
-        const models = Object.keys(MODEL_METRICS);
-        const scores = Object.values(MODEL_METRICS);
-        metricsBarChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: models,
-                datasets: [{
-                    label: 'Precision@10',
-                    data: scores,
-                    backgroundColor: colors,
-                    borderRadius: 8,
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                indexAxis: 'y',
-                scales: {
-                    x: { min: 0.6, max: 0.9, ticks: { color: '#7a95c0' }, grid: { color: 'rgba(99,165,255,0.07)' } },
-                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(99,165,255,0.07)' } }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
+    } else {
+        // No data — friendly empty state
+        grid.innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding:3rem 1rem; color:var(--text-muted);">
+                <div style="font-size:3rem; margin-bottom:1rem;">📊</div>
+                <div style="font-size:1rem; font-weight:700; color:var(--text-main); margin-bottom:0.5rem;">No Evaluation Data Yet</div>
+                <div style="font-size:0.88rem; max-width:400px; margin:0 auto;">Model benchmark metrics will appear here once the scoring pipeline has been run on the server.</div>
+            </div>
+        `;
+        const canvas = document.getElementById('metricsBarChart');
+        if (canvas) canvas.style.display = 'none';
     }
 }
 

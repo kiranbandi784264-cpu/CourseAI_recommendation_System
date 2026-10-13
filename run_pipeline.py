@@ -12,6 +12,7 @@ from src.models.item_based import train_item_based
 from src.models.job_recommendation import train_job_recommendation
 from src.models.implicit_lightfm import train_implicit_lightfm
 from src.models.hybrid_recommendation import train_hybrid_recommendation
+from src.evaluation import evaluate_all_models
 
 def run_full_pipeline():
     start_time = time.time()
@@ -34,14 +35,15 @@ def run_full_pipeline():
     train_job_recommendation(cleaned_dir='data/cleaned', out_dir='data/score_matrices')
     train_implicit_lightfm(cleaned_dir='data/cleaned', out_dir='data/score_matrices')
     
-    # 4. Hybrid ensemble & Evaluation
-    hybrid_mat, metrics = train_hybrid_recommendation(cleaned_dir='data/cleaned', score_dir='data/score_matrices')
+    # 4. Hybrid ensemble & Multi-Model Evaluation Benchmark
+    hybrid_mat, hybrid_metrics = train_hybrid_recommendation(cleaned_dir='data/cleaned', score_dir='data/score_matrices')
+    all_metrics_df = evaluate_all_models(cleaned_dir='data/cleaned', score_dir='data/score_matrices')
     
     elapsed = time.time() - start_time
     print("=" * 70)
     print(f"PIPELINE COMPLETED SUCCESSFULLY IN {elapsed:.2f} SECONDS!")
     print("=" * 70)
-    return metrics
+    return hybrid_metrics
 
 if __name__ == '__main__':
     run_full_pipeline()

@@ -1,0 +1,90 @@
+[
+  {
+    "Model": "Hybrid (Ensemble)",
+    "File": "scoring_matrix_hybrid.csv",
+    "Description": "Ensemble Fusion of all 7 base models",
+    "Precision@10": 0.007333333333333334,
+    "Recall@10": 0.03444444444444444,
+    "HitRate@10": 0.06666666666666667,
+    "NDCG@10": 0.01996408119519021,
+    "MRR": 0.020563492063492065,
+    "F1@10": 0.012092198581560283
+  },
+  {
+    "Model": "LightGCN",
+    "File": "scoring_matrix_lightgcn.csv",
+    "Description": "Graph Convolutional Neural Network",
+    "Precision@10": 0.006666666666666667,
+    "Recall@10": 0.03,
+    "HitRate@10": 0.06666666666666667,
+    "NDCG@10": 0.017243678910986982,
+    "MRR": 0.018674603174603177,
+    "F1@10": 0.01090909090909091
+  },
+  {
+    "Model": "NCF",
+    "File": "scoring_matrix_ncf.csv",
+    "Description": "Neural Collaborative Filtering (NeuMF)",
+    "Precision@10": 0.010666666666666668,
+    "Recall@10": 0.04777777777777777,
+    "HitRate@10": 0.08666666666666667,
+    "NDCG@10": 0.02182917818419892,
+    "MRR": 0.015981481481481482,
+    "F1@10": 0.01743979721166033
+  },
+  {
+    "Model": "Job-Skills",
+    "File": "scoring_matrix_jobs.csv",
+    "Description": "Job-market skill gap vector matching",
+    "Precision@10": 0.009333333333333334,
+    "Recall@10": 0.04555555555555556,
+    "HitRate@10": 0.09333333333333334,
+    "NDCG@10": 0.026035795132056158,
+    "MRR": 0.028322751322751322,
+    "F1@10": 0.015492577597840756
+  },
+  {
+    "Model": "User-Based CF",
+    "File": "scoring_matrix_ubcf.csv",
+    "Description": "Neighborhood CF with VADER sentiment",
+    "Precision@10": 0.005333333333333334,
+    "Recall@10": 0.028888888888888888,
+    "HitRate@10": 0.05333333333333334,
+    "NDCG@10": 0.017054512234360105,
+    "MRR": 0.01736772486772487,
+    "F1@10": 0.009004329004329004
+  },
+  {
+    "Model": "Content-Based",
+    "File": "scoring_matrix_content_based.csv",
+    "Description": "TF-IDF semantic course descriptions",
+    "Precision@10": 0.008,
+    "Recall@10": 0.03444444444444444,
+    "HitRate@10": 0.08,
+    "NDCG@10": 0.023995092451542566,
+    "MRR": 0.03161111111111112,
+    "F1@10": 0.012984293193717278
+  },
+  {
+    "Model": "Item-Based CF",
+    "File": "scoring_matrix_item_based_cf.csv",
+    "Description": "Jaccard item co-enrollment patterns",
+    "Precision@10": 0.008000000000000002,
+    "Recall@10": 0.03666666666666667,
+    "HitRate@10": 0.08,
+    "NDCG@10": 0.021967656800017,
+    "MRR": 0.027563492063492064,
+    "F1@10": 0.013134328358208958
+  },
+  {
+    "Model": "Implicit (LightFM)",
+    "File": "scoring_matrix_implicit.csv",
+    "Description": "Implicit feedback matrix factorization",
+    "Precision@10": 0.007333333333333334,
+    "Recall@10": 0.03333333333333333,
+    "HitRate@10": 0.07333333333333333,
+    "NDCG@10": 0.017652305091840955,
+    "MRR": 0.019026455026455027,
+    "F1@10": 0.012021857923497269
+  }
+]

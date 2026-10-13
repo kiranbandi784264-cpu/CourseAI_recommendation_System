@@ -11,9 +11,13 @@ def min_max_normalize(df):
     norm_val = (val - min_v) / (max_v - min_v)
     return pd.DataFrame(norm_val, index=df.index, columns=df.columns)
 
-def evaluate_top_k(hybrid_df, test_df, k=10):
-    precisions, recalls, ndcgs = [], [], []
+def evaluate_top_k(hybrid_df, test_df, train_df=None, k=10, mask_train=True):
+    precisions, recalls, ndcgs, hit_rates = [], [], [], []
     
+    train_taken = {}
+    if mask_train and train_df is not None:
+        train_taken = train_df.groupby('Reviewer')['Course Name'].agg(set).to_dict()
+        
     test_grouped = test_df.groupby('Reviewer')
     for user, group in test_grouped:
         if user not in hybrid_df.index:
@@ -22,12 +26,18 @@ def evaluate_top_k(hybrid_df, test_df, k=10):
         if not actual_courses:
             continue
             
-        user_scores = hybrid_df.loc[user].sort_values(ascending=False)
-        recommended_courses = user_scores.index[:k].tolist()
+        user_scores = hybrid_df.loc[user].copy()
+        if mask_train and user in train_taken:
+            for c in train_taken[user]:
+                if c in user_scores.index:
+                    user_scores[c] = -1e9
+                    
+        recommended_courses = user_scores.sort_values(ascending=False).index[:k].tolist()
         
         hits = len(set(recommended_courses).intersection(actual_courses))
         precision = hits / k
         recall = hits / len(actual_courses)
+        hit_rate = 1.0 if hits > 0 else 0.0
         
         # DCG & IDCG for NDCG@k
         dcg = 0.0
@@ -39,11 +49,13 @@ def evaluate_top_k(hybrid_df, test_df, k=10):
         
         precisions.append(precision)
         recalls.append(recall)
+        hit_rates.append(hit_rate)
         ndcgs.append(ndcg)
         
     return {
         'Precision@10': np.mean(precisions) if precisions else 0.0,
         'Recall@10': np.mean(recalls) if recalls else 0.0,
+        'HitRate@10': np.mean(hit_rates) if hit_rates else 0.0,
         'NDCG@10': np.mean(ndcgs) if ndcgs else 0.0
     }
 
@@ -90,10 +102,16 @@ def train_hybrid_recommendation(cleaned_dir='data/cleaned', score_dir='data/scor
     hybrid_matrix.to_csv(out_path)
     print(f"Hybrid Recommendation Matrix saved to {out_path} (Ensembled {len(loaded_models)} models)")
     
-    metrics = evaluate_top_k(hybrid_matrix, test_df, k=10)
-    print("\nHybrid Recommendation Performance Metrics:")
+    train_path = os.path.join(cleaned_dir, 'train.csv')
+    train_df = pd.read_csv(train_path) if os.path.exists(train_path) else None
+    
+    metrics = evaluate_top_k(hybrid_matrix, test_df, train_df=train_df, k=10, mask_train=True)
+    print("\nHybrid Recommendation Performance Metrics (Top-10 on Held-Out Test Set):")
     for metric_name, val in metrics.items():
-        print(f"  - {metric_name}: {val:.4f}")
+        if 'HitRate' in metric_name:
+            print(f"  - {metric_name}: {val*100:.2f}%")
+        else:
+            print(f"  - {metric_name}: {val:.4f}")
         
     return hybrid_matrix, metrics
 
