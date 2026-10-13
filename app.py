@@ -48,7 +48,15 @@ def presentation():
 def download_presentation():
     return send_from_directory('static', 'presentation.html', as_attachment=True, download_name='CourseAI_Interactive_Presentation.html')
 
+@app.route('/report')
+@app.route('/report.pdf')
+@app.route('/technical-report.pdf')
+def serve_technical_report():
+    return send_from_directory('.', 'CourseAI_Technical_Review_Response_Report.pdf')
 
+@app.route('/download-report')
+def download_technical_report():
+    return send_from_directory('.', 'CourseAI_Technical_Review_Response_Report.pdf', as_attachment=True, download_name='CourseAI_Technical_Review_Response_Report.pdf')
 
 @app.route('/figures/<path:filename>')
 def serve_figure(filename):

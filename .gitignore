@@ -25,6 +25,7 @@ manuscripts_archive/
 *.fdb_latexmk
 *.tex
 *.pdf
+!CourseAI_Technical_Review_Response_Report.pdf
 *.pptx
 *.zip
 
