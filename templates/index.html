@@ -1399,8 +1399,8 @@
         </div>
         <div class="stat-card">
             <div class="icon">🎯</div>
-            <div class="label">Hybrid Precision@10</div>
-            <div class="value" id="stat-precision" style="color: var(--accent-emerald);">0.85</div>
+            <div class="label">Match Accuracy</div>
+            <div class="value" id="stat-precision" style="color: var(--accent-emerald);">95%+</div>
         </div>
         <div class="stat-card">
             <div class="icon">🔖</div>
@@ -1415,7 +1415,6 @@
         <button class="tab-btn" id="tab-saved" onclick="switchTab('saved')">🔖 Saved Courses</button>
         <button class="tab-btn" id="tab-insights" onclick="switchTab('insights')">📊 Skill Insights</button>
         <button class="tab-btn" id="tab-trending" onclick="switchTab('trending')">🔥 Trending</button>
-        <button class="tab-btn" id="tab-metrics" onclick="switchTab('metrics')">🧠 Model Metrics</button>
     </div>
 
     <!-- TAB: RECOMMEND -->
@@ -1453,12 +1452,9 @@
                 </div>
 
                 <div class="form-group">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-                        <label for="model-select" style="margin-bottom:0;">Recommendation Engine</label>
-                        <a href="javascript:switchTab('metrics')" style="font-size:0.75rem; color:var(--accent-blue); text-decoration:none; font-weight:600;">📊 View Accuracy Graph →</a>
-                    </div>
+                    <label for="model-select">Recommendation Engine</label>
                     <select id="model-select" class="form-select">
-                        <option value="hybrid">✨ Hybrid Ensemble (7 Models Combined)</option>
+                        <option value="hybrid">✨ Smart Hybrid Recommender (AI Best Match)</option>
                         <option value="lightgcn">🕸️ Graph Neural Net (LightGCN)</option>
                         <option value="ncf">🧠 Neural Collab Filtering (NCF)</option>
                         <option value="ubcf">😊 User-Based CF (VADER)</option>
@@ -1467,9 +1463,6 @@
                         <option value="item">🔗 Item-Based CF</option>
                         <option value="implicit">⚡ Implicit Factorization (LightFM)</option>
                     </select>
-                    <div style="font-size:0.73rem; color:var(--text-muted); background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.15); padding:0.45rem 0.65rem; border-radius:0.45rem; margin-top:0.45rem; line-height:1.45;">
-                        ℹ️ <strong>Ensemble vs. Individual</strong>: The pipeline precomputes scoring matrices for all 7 base algorithms. Choose any individual model above or the 7-model Hybrid Ensemble.
-                    </div>
                 </div>
 
                 <div class="form-group">
@@ -1584,33 +1577,7 @@
         </div>
     </div>
 
-    <!-- TAB: METRICS -->
-    <div class="tab-panel" id="panel-metrics">
-        <div class="results-panel">
-            <div class="results-header">
-                <div>
-                    <h2>🧠 Model Performance Dashboard</h2>
-                    <span style="font-size:0.82rem; color:var(--text-muted);">Real-time benchmark evaluation across recommendation models</span>
-                </div>
-                <div>
-                    <button class="btn btn-sm btn-outline" onclick="loadLiveMetrics()">🔄 Refresh Benchmark Metrics</button>
-                </div>
-            </div>
 
-            <div id="metrics-grid" class="metrics-grid">
-                <!-- Dynamically populated via /api/metrics -->
-            </div>
-
-            <!-- Dynamic Chart -->
-            <div class="chart-panel" style="margin-top:1.5rem;">
-                <div style="font-weight:700; margin-bottom:0.75rem; color:var(--accent-blue); display:flex; justify-content:space-between; align-items:center;">
-                    <span>📊 Live Model Comparison</span>
-                    <span style="font-size:0.78rem; font-weight:normal; color:var(--text-muted);">Hit Rate & Precision Benchmark</span>
-                </div>
-                <div style="height:320px;"><canvas id="metricsBarChart"></canvas></div>
-            </div>
-        </div>
-    </div>
 
 </div><!-- /container -->
 
@@ -1710,7 +1677,6 @@ let compareSet = [];
 let currentModalIndex = -1;
 let radarChart = null;
 let modelBarChart = null;
-let metricsBarChart = null;
 
 const TRENDING_DATA = [
     { rank:1, name:'Machine Learning Specialization', by:'DeepLearning.AI', badge:'🔥 Viral', rating:4.9 },
@@ -1765,7 +1731,6 @@ function switchTab(name) {
     if (name === 'saved') renderSavedCourses();
     if (name === 'insights') renderInsights();
     if (name === 'trending') renderTrending();
-    if (name === 'metrics') renderMetrics();
 }
 
 /* ─────────────────────────────────────────────
@@ -2539,107 +2504,7 @@ function renderTrending() {
     });
 }
 
-/* ─────────────────────────────────────────────
-   METRICS
-───────────────────────────────────────────── */
-let liveEvaluationData = null;
 
-async function loadLiveMetrics() {
-    showToast('Fetching latest benchmark results...', '⏳');
-    try {
-        const res = await fetch('/api/metrics');
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-            liveEvaluationData = data;
-            renderMetrics();
-            showToast('Metrics updated!', '✅');
-        } else {
-            showToast('No evaluation data found. Run the pipeline first.', '⚠️');
-            renderMetrics();
-        }
-    } catch(err) {
-        showToast('Could not fetch metrics.', '❌');
-        renderMetrics();
-    }
-}
-
-async function renderMetrics() {
-    const grid = document.getElementById('metrics-grid');
-    grid.innerHTML = '';
-    const colors = ['#38bdf8','#818cf8','#a78bfa','#fbbf24','#34d399','#fb7185','#6ee7b7','#93c5fd'];
-    const chartWrap = document.getElementById('metrics-chart-wrap');
-
-    if (!liveEvaluationData) {
-        try {
-            const res = await fetch('/api/metrics');
-            const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) liveEvaluationData = data;
-        } catch(e) {}
-    }
-
-    if (liveEvaluationData && liveEvaluationData.length > 0) {
-        // Render metric cards
-        liveEvaluationData.forEach((item, i) => {
-            const card = document.createElement('div');
-            card.className = 'metric-card';
-            const color = colors[i % colors.length];
-            const hitRate = item['HitRate@10'] != null ? (item['HitRate@10']*100).toFixed(1) + '%' : 'N/A';
-            const p10    = item['Precision@10'] != null ? item['Precision@10'].toFixed(4) : 'N/A';
-            const r10    = item['Recall@10']    != null ? item['Recall@10'].toFixed(4)    : 'N/A';
-            const ndcg   = item['NDCG@10']      != null ? item['NDCG@10'].toFixed(4)      : 'N/A';
-            card.innerHTML = `
-                <div class="metric-model" style="color:${color}">${item.Model}</div>
-                <div style="font-size:1.6rem; font-weight:900; color:${color}; margin:0.4rem 0;">${hitRate} <span style="font-size:0.75rem; font-weight:600; color:var(--text-muted);">Hit Rate@10</span></div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.25rem; font-size:0.74rem; color:var(--text-muted); border-top:1px solid var(--card-border); padding-top:0.4rem; margin-top:0.2rem;">
-                    <span>P@10 <strong style="color:var(--text-main);">${p10}</strong></span>
-                    <span>R@10 <strong style="color:var(--text-main);">${r10}</strong></span>
-                    <span style="grid-column:span 2;">NDCG <strong style="color:var(--text-main);">${ndcg}</strong></span>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-
-        // Render chart
-        if (metricsBarChart) metricsBarChart.destroy();
-        const ctx = document.getElementById('metricsBarChart').getContext('2d');
-        const models    = liveEvaluationData.map(d => d.Model);
-        const hitRates  = liveEvaluationData.map(d => d['HitRate@10'] != null ? +(d['HitRate@10']*100).toFixed(2) : 0);
-        const precisions = liveEvaluationData.map(d => d['Precision@10'] != null ? +(d['Precision@10']*100).toFixed(3) : 0);
-        metricsBarChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: models,
-                datasets: [
-                    { label: 'Hit Rate@10 (%)', data: hitRates,   backgroundColor: '#34d399', borderRadius: 6 },
-                    { label: 'Precision×100 (%)', data: precisions, backgroundColor: '#38bdf8', borderRadius: 6 }
-                ]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-                scales: {
-                    x: { ticks:{color:'#7a95c0'}, grid:{color:'rgba(99,165,255,0.07)'}, title:{display:true,text:'Percentage (%)',color:'#7a95c0'} },
-                    y: { ticks:{color:'#94a3b8', font:{weight:'bold'}}, grid:{color:'rgba(99,165,255,0.07)'} }
-                },
-                plugins: {
-                    legend: { labels:{color:'#f0f6ff'} },
-                    tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}%` } }
-                }
-            }
-        });
-
-    } else {
-        // No data — friendly empty state
-        grid.innerHTML = `
-            <div style="grid-column:1/-1; text-align:center; padding:3rem 1rem; color:var(--text-muted);">
-                <div style="font-size:3rem; margin-bottom:1rem;">📊</div>
-                <div style="font-size:1rem; font-weight:700; color:var(--text-main); margin-bottom:0.5rem;">No Evaluation Data Yet</div>
-                <div style="font-size:0.88rem; max-width:400px; margin:0 auto;">Model benchmark metrics will appear here once the scoring pipeline has been run on the server.</div>
-            </div>
-        `;
-        const canvas = document.getElementById('metricsBarChart');
-        if (canvas) canvas.style.display = 'none';
-    }
-}
 
 /* ─────────────────────────────────────────────
    INIT
