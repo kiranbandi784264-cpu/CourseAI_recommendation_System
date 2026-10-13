@@ -3080,7 +3080,9 @@ document.getElementById('auth-overlay').addEventListener('click', function(e) {
 });
 </script>
 
-<!-- AUTH MODAL -->
+</div><!-- /app-content-wrap -->
+
+<!-- AUTH MODAL — must be OUTSIDE app-content-wrap so CSS filter doesn't blur it -->
 <div id="auth-overlay" class="auth-overlay">
   <div class="auth-box">
     <div class="auth-glow"></div>
@@ -3130,8 +3132,6 @@ document.getElementById('auth-overlay').addEventListener('click', function(e) {
     </form>
   </div>
 </div>
-
-</div><!-- /app-content-wrap -->
 
 </body>
 </html>
