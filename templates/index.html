@@ -548,6 +548,17 @@
             padding: 1.5rem;
         }
         .auth-overlay.open { display: flex; }
+
+        /* App content locked behind auth */
+        .app-content-wrap {
+            transition: filter 0.4s ease, opacity 0.4s ease;
+        }
+        .app-content-wrap.locked {
+            filter: blur(8px) brightness(0.4);
+            pointer-events: none;
+            user-select: none;
+            opacity: 0.5;
+        }
         .auth-box {
             background: linear-gradient(160deg, #0d1b3e 0%, #0b1530 60%, #10102a 100%);
             border: 1px solid rgba(99,165,255,0.18);
@@ -1325,6 +1336,7 @@
     <span id="toast-message">Notification</span>
 </div>
 
+<div class="app-content-wrap locked">
 <div class="container">
 
     <!-- HERO -->
@@ -2936,13 +2948,39 @@ window.onload = async () => {
 })();
 
 // ─── AUTH SYSTEM ───────────────────────────────────────────────────────────
+let _appUnlocked = false;
+
+function lockApp() {
+  _appUnlocked = false;
+  document.querySelector('.app-content-wrap').classList.add('locked');
+  // Show auth modal without close button
+  document.getElementById('auth-close-btn').style.display = 'none';
+  document.getElementById('auth-overlay').classList.add('open');
+  switchAuthTab('login');
+  document.getElementById('auth-error-login').style.display = 'none';
+  document.getElementById('auth-error-signup').style.display = 'none';
+}
+
+function unlockApp(name, email) {
+  _appUnlocked = true;
+  document.querySelector('.app-content-wrap').classList.remove('locked');
+  document.getElementById('auth-overlay').classList.remove('open');
+  document.getElementById('auth-close-btn').style.display = 'flex';
+  setNavUser({ logged_in: true, name, email });
+}
+
 function openAuthModal(tab) {
+  if (_appUnlocked) {
+    // When already logged in, show close button (profile view)
+    document.getElementById('auth-close-btn').style.display = 'flex';
+  }
   document.getElementById('auth-overlay').classList.add('open');
   switchAuthTab(tab || 'login');
   document.getElementById('auth-error-login').style.display = 'none';
   document.getElementById('auth-error-signup').style.display = 'none';
 }
 function closeAuthModal() {
+  if (!_appUnlocked) return; // Cannot close if not authenticated
   document.getElementById('auth-overlay').classList.remove('open');
 }
 function switchAuthTab(tab) {
@@ -2987,8 +3025,7 @@ async function doLogin(e) {
     });
     const data = await res.json();
     if (data.success) {
-      closeAuthModal();
-      setNavUser({ logged_in: true, name: data.name, email: data.email });
+      unlockApp(data.name, data.email);
       showToast('✅', `Welcome back, ${data.name.split(' ')[0]}!`);
     } else {
       errEl.textContent = data.message; errEl.style.display = 'block';
@@ -3015,8 +3052,7 @@ async function doSignup(e) {
     });
     const data = await res.json();
     if (data.success) {
-      closeAuthModal();
-      setNavUser({ logged_in: true, name: data.name, email: data.email });
+      unlockApp(data.name, data.email);
       showToast('🎉', `Account created! Welcome, ${data.name.split(' ')[0]}!`);
     } else {
       errEl.textContent = data.message; errEl.style.display = 'block';
@@ -3026,15 +3062,21 @@ async function doSignup(e) {
 }
 async function doLogout() {
   await fetch('/api/logout', { method:'POST' });
-  setNavUser({ logged_in: false });
   document.getElementById('user-dropdown').classList.remove('open');
   showToast('👋', 'Signed out successfully.');
+  setTimeout(() => lockApp(), 400); // re-lock after brief delay
 }
-// Check session on page load
-fetch('/api/me').then(r=>r.json()).then(data=>setNavUser(data));
-// Close auth modal on overlay click
+// Check session on page load — lock if not authenticated
+fetch('/api/me').then(r => r.json()).then(data => {
+  if (data.logged_in) {
+    unlockApp(data.name, data.email);
+  } else {
+    lockApp();
+  }
+});
+// Overlay click only closes if already unlocked
 document.getElementById('auth-overlay').addEventListener('click', function(e) {
-  if (e.target === this) closeAuthModal();
+  if (e.target === this && _appUnlocked) closeAuthModal();
 });
 </script>
 
@@ -3042,7 +3084,7 @@ document.getElementById('auth-overlay').addEventListener('click', function(e) {
 <div id="auth-overlay" class="auth-overlay">
   <div class="auth-box">
     <div class="auth-glow"></div>
-    <button class="auth-close" onclick="closeAuthModal()">✕</button>
+    <button id="auth-close-btn" class="auth-close" onclick="closeAuthModal()" style="display:none;">✕</button>
     <div class="auth-logo">⚡ CourseAI</div>
     <div class="auth-tagline">AI-Powered Learning Intelligence</div>
     <!-- Tabs -->
@@ -3088,6 +3130,8 @@ document.getElementById('auth-overlay').addEventListener('click', function(e) {
     </form>
   </div>
 </div>
+
+</div><!-- /app-content-wrap -->
 
 </body>
 </html>
